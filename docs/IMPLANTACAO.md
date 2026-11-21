@@ -9,7 +9,7 @@ Faça primeiro em um ambiente de **homologação** e só depois repita em produ�
    Guarde a senha do banco em local seguro.
 2. Em **Project Settings > API**, copie a *Project URL*, a chave *anon* e a chave *service_role*.
 3. Aplique as migrações, na ordem dos nomes de arquivo, de uma destas formas:
-   - pelo **SQL Editor** do painel, colando e executando cada arquivo de `supabase/migrations/`; ou
+   - pelo **SQL Editor** do painel, colando e executando cada arquivo de `supabase/migrations/` (são 4 ou mais; respeite a ordem dos nomes); ou
    - pela CLI: `npx supabase link --project-ref <ref>` e `npx supabase db push`.
 4. Carregue a base inicial da FIQ Brasil executando `supabase/seed/fiq-brasil.sql` no SQL Editor.
    O script pode ser executado mais de uma vez sem duplicar dados.
