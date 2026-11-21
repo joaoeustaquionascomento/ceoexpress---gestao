@@ -17,10 +17,27 @@ export function ActionForm({
   pending?: string;
   children: React.ReactNode;
 }) {
-  const [state, formAction] = useActionState(action, undefined);
+  // Guarda o que foi enviado para devolver aos campos se der erro
+  // (o navegador limpa o formulário depois de cada envio).
+  const sent = useRef<FormData | null>(null);
+  const [state, formAction] = useActionState(async (s: State, f: FormData) => {
+    sent.current = f;
+    return action(s, f);
+  }, undefined);
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state?.ok) ref.current?.reset();
+    const form = ref.current;
+    if (!form) return;
+    if (state?.ok) form.reset();
+    if (state?.error && sent.current) {
+      for (const [name, value] of sent.current.entries()) {
+        const el = form.elements.namedItem(name);
+        if (typeof value === "string" && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) {
+          if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) el.checked = true;
+          else if (!(el instanceof HTMLInputElement && (el.type === "hidden" || el.type === "file"))) el.value = value;
+        }
+      }
+    }
   }, [state]);
   return (
     <form ref={ref} action={formAction} className="space-y-4">

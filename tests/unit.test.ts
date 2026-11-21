@@ -62,3 +62,15 @@ describe("validação de arquivos", () => {
     expect(formatBytes(3.5 * 1024 * 1024)).toBe("3,5 MB");
   });
 });
+
+describe("CNPJ", async () => {
+  const { normalizeCnpj, formatCnpj } = await import("@/lib/cnpj");
+  it("aceita com ou sem pontuação e recusa tamanho errado", () => {
+    expect(normalizeCnpj("12.345.678/0001-90")).toBe("12345678000190");
+    expect(normalizeCnpj(" 12345678000190 ")).toBe("12345678000190");
+    expect(normalizeCnpj("")).toBeNull();
+    expect(normalizeCnpj(undefined)).toBeNull();
+    expect(normalizeCnpj("123")).toBe("invalido");
+    expect(formatCnpj("12345678000190")).toBe("12.345.678/0001-90");
+  });
+});

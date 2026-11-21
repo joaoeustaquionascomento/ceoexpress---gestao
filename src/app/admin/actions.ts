@@ -6,23 +6,31 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
 import { generateInviteToken, hashToken } from "@/lib/tokens";
+import { normalizeCnpj } from "@/lib/cnpj";
 
 export type AdminState = { error?: string; ok?: string; link?: string } | undefined;
 
 const company = z.object({
-  legal_name: z.string().trim().min(2).max(200),
-  trade_name: z.string().trim().min(2).max(120),
-  cnpj: z.string().trim().max(20).optional().transform((v) => v || null),
-  segment: z.string().trim().max(120).optional().transform((v) => v || null),
+  legal_name: z.string({ error: "Preencha a razão social." }).trim().min(2, "Preencha a razão social.").max(200, "Razão social muito longa (máximo 200 caracteres)."),
+  trade_name: z.string({ error: "Preencha o nome fantasia." }).trim().min(2, "Preencha o nome fantasia (ao menos 2 letras).").max(120, "Nome fantasia muito longo (máximo 120 caracteres)."),
+  cnpj: z
+    .string()
+    .optional()
+    .transform((v) => normalizeCnpj(v))
+    .refine((v) => v !== "invalido", "O CNPJ precisa ter 14 números. Pode deixar em branco."),
+  segment: z.string().trim().max(120, "Segmento muito longo (máximo 120 caracteres).").optional().transform((v) => v || null),
 });
 
 export async function createCompany(_: AdminState, form: FormData): Promise<AdminState> {
   const user = await requireRole("admin");
   const parsed = company.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { error: "Preencha razão social e nome fantasia." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
   const supabase = await createClient();
   const { error } = await supabase.from("companies").insert({ ...parsed.data, created_by: user.id });
-  if (error) return { error: error.code === "23505" ? "Já existe uma empresa com este CNPJ." : "Não foi possível salvar." };
+  if (error) {
+    console.error("createCompany", error.code, error.message);
+    return { error: error.code === "23505" ? "Já existe uma empresa com este CNPJ." : `Não foi possível salvar (código ${error.code ?? "?"}).` };
+  }
   revalidatePath("/admin/empresas");
   return { ok: `Empresa ${parsed.data.trade_name} cadastrada.` };
 }
