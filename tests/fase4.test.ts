@@ -60,3 +60,22 @@ describe("Resumo diário por e-mail", () => {
     expect(m.subject).toContain("25 avisos");
   });
 });
+
+import { formatChecklist, parseChecklist, parseFormats } from "@/lib/checklist";
+
+describe("Subitens e formatos do pedido", () => {
+  it("lê um subitem por linha, com orientação depois de ::", () => {
+    const items = parseChecklist("Extratos :: últimos 3 meses\n\n  Contrato social  \nA :: b :: c");
+    expect(items).toEqual([
+      { item: "Extratos", instrucao: "últimos 3 meses" },
+      { item: "Contrato social", instrucao: null },
+      { item: "A", instrucao: "b :: c" },
+    ]);
+    expect(parseChecklist(formatChecklist(items))).toEqual(items);
+    expect(formatChecklist(null)).toBe("");
+  });
+  it("normaliza formatos aceitos", () => {
+    expect(parseFormats(".PDF, xlsx; docx docx")).toEqual(["pdf", "xlsx", "docx"]);
+    expect(parseFormats("")).toEqual(["pdf"]);
+  });
+});

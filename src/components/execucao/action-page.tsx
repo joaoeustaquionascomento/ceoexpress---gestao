@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeleteForm } from "@/components/modelos/forms";
 import { notFound } from "next/navigation";
 import { Badge, BackLink, Card, EmptyState, PageTitle } from "@/components/ui";
 import { ActionCommentForm, ActionForm, StatusForm } from "@/components/execucao/forms";
@@ -158,6 +159,14 @@ export async function ActionPage({ area, params }: { area: Area; params: Promise
             <Link href={`${base}/acoes/${a.id}/editar`} className="flex min-h-11 items-center justify-center rounded-lg border border-line bg-surface px-4 font-semibold text-mauve hover:bg-tint">
               Editar ação
             </Link>
+          )}
+          {access.staff && (area === "admin" || area === "consultor") && (
+            <DeleteForm
+              kind="acao"
+              label="Excluir esta ação"
+              hidden={{ area, projectId: id, actionId: a.id }}
+              warning="A ação, o histórico e as mensagens dela saem do plano. Se outra ação depende desta, a exclusão é bloqueada. Para manter o registro, prefira marcar como Cancelada."
+            />
           )}
           <Card>
             <h2 className="mb-3 text-lg font-semibold text-plum">Histórico</h2>

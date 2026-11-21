@@ -118,6 +118,11 @@ export async function PlanPage({
         <a href={`/exportar/${id}/acoes`} download className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Baixar CSV
         </a>
+        {access.staff && area !== "cliente" && (
+          <Link href={`${base}/modelos`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+            Dos modelos
+          </Link>
+        )}
         {access.staff && (
           <Link href={`${base}/acoes/nova`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
             Nova ação
