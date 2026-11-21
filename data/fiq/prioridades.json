@@ -1,0 +1,20 @@
+{
+  "P1": [
+    "Caixa e obrigações",
+    "Em 30/11, Izaque define o saldo mínimo, escolhe medidas para os déficits e nomeia os executores. João apresenta as alternativas.",
+    "O Financeiro entrega saldos livres e bloqueados, vencidos, obrigações dos próximos 14 dias e projeção de 13 semanas. Separar recebimentos confirmados e estimados por projeto. Mostrar a primeira semana abaixo do mínimo, o valor faltante e o efeito de cada medida até o vencimento.",
+    "Toda sexta, confrontar previsão e extrato. Registrar valor e data previstos e realizados, obrigação paga e saldo após o vencimento. João apresenta o primeiro confronto em 07/12. Manter aberta a pendência se o déficit passou para outra semana."
+  ],
+  "P2": [
+    "Margem e processo",
+    "Izaque e Operação selecionam cinco casos. Em 07/12, Izaque escolhe uma correção e nomeia quem a aplicará até 14/12. João acompanha o teste.",
+    "Entregar DRE preliminar de 2026 e fichas dos casos recorrente, grande, com retrabalho, perdido e com pressão de caixa. Incluir orçamento, receita, tributos, custos e datas da aprovação ao recebimento. No caso perdido, registrar proposta e motivo documentado. Quantificar o tempo ou valor afetado pelo gargalo.",
+    "Registrar a medida inicial e repetir a medição com o mesmo critério. Para atraso de faturamento, conferir dias entre medição e nota fiscal. Para margem, comparar orçamento e realizado com a mesma base de custos. Anexar os documentos e acompanhar a repetição em novos projetos."
+  ],
+  "P3": [
+    "Orçamento e escolhas de 2027",
+    "João apresenta a versão preliminar em 14/12. Em 21/12, Izaque decide quais iniciativas financiar, seus limites e as condições de liberação.",
+    "Comercial, Financeiro, Operação e Contabilidade informam suas premissas. Separar histórico fechado de meses parciais. Informar carteira, preço, volume, capacidade, tributos, despesas e investimentos. Mostrar margem esperada, desembolso e menor saldo de caixa nos cenários base e de pressão.",
+    "Registrar cada iniciativa como aprovada, condicionada ou adiada, com valor, responsável e condição. Para lacunas relevantes, marcar revisão do orçamento preliminar. No primeiro fechamento de 2027, comparar receita, margem e caixa com o orçamento e registrar a decisão sobre os desvios."
+  ]
+}

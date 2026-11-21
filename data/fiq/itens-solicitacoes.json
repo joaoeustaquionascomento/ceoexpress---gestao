@@ -1,0 +1,122 @@
+{
+  "requestItems": {
+    "D01": [
+      "Contrato integral assinado",
+      "Anexos aceitos e identificação da vigência e do CNPJ",
+      "Comprovante de inscrição e situação cadastral do CNPJ"
+    ],
+    "D02": [
+      "Saldo por conta em 23/11, com valores disponíveis, bloqueados e limites",
+      "Extratos recentes das contas",
+      "Pendências de conciliação"
+    ],
+    "D03": [
+      "Contas a vencer nas próximas 13 semanas",
+      "Obrigações vencidas com indicação de criticidade"
+    ],
+    "D04": [
+      "Títulos em aberto por cliente e projeto",
+      "Adiantamentos e previsão de recebimento com probabilidade"
+    ],
+    "D05": [
+      "Posição das dívidas e garantias",
+      "Cronograma de parcelas com principal e juros"
+    ],
+    "D06": [
+      "Carteira de projetos e etapas de execução",
+      "Aceites, instaladores e cidades",
+      "Custos e pagamentos por projeto"
+    ],
+    "D07": [
+      "Pedidos e notas por mês, cliente, serviço e canal",
+      "Cancelamentos do período",
+      "Faturamento parcial de novembro"
+    ],
+    "D08": [
+      "Custos e despesas mensais por conta e projeto",
+      "DRE disponível de janeiro a outubro",
+      "Projeções de novembro e dezembro"
+    ],
+    "D09": [
+      "Orçamento e metas de 2026 ou registro de indisponibilidade",
+      "Propostas para 2027 ou registro de indisponibilidade",
+      "Versões, aprovações e premissas"
+    ],
+    "D10": [
+      "Propostas da amostra de casos",
+      "Respostas e resultados",
+      "Motivos de perda com evidências"
+    ],
+    "D11": [
+      "Prazos previstos, realizados e aceites",
+      "Retrabalho e respectivos custos",
+      "Disponibilidade atual da rede"
+    ],
+    "D12": [
+      "Sistemas, relatórios e responsáveis",
+      "Exemplo de exportação ou demonstração da rotina"
+    ],
+    "D13": [
+      "Papéis da equipe e custos totais",
+      "Contratos e despesas recorrentes",
+      "Mudanças previstas para 2027"
+    ],
+    "D14": [
+      "Investimentos propostos por mês e justificativa",
+      "Custo, prazo, capacidade e retorno estimado"
+    ],
+    "D15": [
+      "Regime e premissas para 2027",
+      "Validação da contabilidade e efeitos em margem, preço e caixa"
+    ],
+    "D16": [
+      "Histórico disponível de 2024",
+      "Histórico disponível de 2025",
+      "Critérios comparáveis e diferenças entre os anos"
+    ]
+  },
+  "itemInstructions": {
+    "Contrato integral assinado": "Envie a via assinada do contrato de prestação de serviços de assessoria entre FIQ Brasil e CEOEXPRESS, da primeira página até as assinaturas. O contrato social e as alterações societárias da FIQ são documentos distintos deste pedido.",
+    "Anexos aceitos e identificação da vigência e do CNPJ": "Junte a proposta e os anexos incorporados ao contrato, se houver, e eventuais aditivos assinados. Indique a data de início da prestação, o prazo de vigência e qual documento registra uma eventual mudança.",
+    "Comprovante de inscrição e situação cadastral do CNPJ": "Anexe o comprovante atualizado da Receita Federal referente ao CNPJ da FIQ que figura como contratante. Confira razão social, número do CNPJ, situação cadastral e data de emissão.",
+    "Saldo por conta em 23/11, com valores disponíveis, bloqueados e limites": "Informe o saldo de abertura de cada conta em 23/11/2026. Identifique banco e conta por um apelido ou final do número. Separe dinheiro disponível, valores bloqueados e limite de crédito.",
+    "Extratos recentes das contas": "Anexe o extrato emitido pelo banco para cada conta, com datas inicial e final, movimentações e saldos que permitam conferir a abertura de 23/11.",
+    "Pendências de conciliação": "Liste os lançamentos ainda sem correspondência entre banco e sistema financeiro. Para cada diferença, indique conta, data, valor e o que falta conferir.",
+    "Contas a vencer nas próximas 13 semanas": "Exporte o relatório de contas a pagar das 13 semanas a partir de 23/11/2026. Use uma linha por título ou parcela, com credor, documento, vencimento, valor em aberto e projeto, quando houver.",
+    "Obrigações vencidas com indicação de criticidade": "Separe os títulos já vencidos na abertura. Indique dias de atraso, previsão de pagamento e a consequência de adiar cada obrigação, como a suspensão de uma instalação.",
+    "Títulos em aberto por cliente e projeto": "Envie o relatório de contas a receber em aberto na data da extração. Por título, informe cliente, projeto, nota ou cobrança, vencimento, valor original e saldo a receber.",
+    "Adiantamentos e previsão de recebimento com probabilidade": "Identifique os adiantamentos já recebidos, com valor, data e projeto. Para entradas futuras, indique data provável e se há confirmação do cliente ou apenas estimativa.",
+    "Posição das dívidas e garantias": "Relacione empréstimos, financiamentos e parcelamentos vigentes. Por operação, informe credor, referência do contrato, data do saldo, saldo devedor e garantia vinculada, se houver. Anexe o demonstrativo do credor.",
+    "Cronograma de parcelas com principal e juros": "Envie o cronograma de cada operação, com vencimento, amortização do principal, juros e valor da parcela. Identifique parcelas vencidas e condições renegociadas.",
+    "Carteira de projetos e etapas de execução": "Envie uma planilha dos projetos contratados em andamento ou ainda por iniciar. Por projeto, informe código, cliente, valor contratado, etapa atual e datas previstas de início e conclusão.",
+    "Aceites, instaladores e cidades": "Para cada projeto, identifique cidade, instalador designado e etapa aceita pelo cliente. Anexe o termo, e-mail ou registro de aceite disponível e indique os aceites pendentes.",
+    "Custos e pagamentos por projeto": "Use o mesmo código de projeto para relacionar fornecedor ou instalador, custo previsto, valor já pago, saldo a pagar e respectivos vencimentos.",
+    "Pedidos e notas por mês, cliente, serviço e canal": "Exporte os pedidos e as notas fiscais de janeiro a outubro de 2026. Identifique mês de competência, cliente, serviço, canal, número do pedido e da nota e valor de cada um, permitindo relacionar pedido e faturamento.",
+    "Cancelamentos do período": "Liste pedidos e notas cancelados no período, indicando o documento original, data do cancelamento, valor e motivo registrado.",
+    "Faturamento parcial de novembro": "Envie novembro de 2026 em aba ou arquivo separado. Informe até qual dia o faturamento foi apurado e use os mesmos campos dos meses fechados.",
+    "Custos e despesas mensais por conta e projeto": "Envie o relatório mensal de janeiro a outubro de 2026, com mês de competência, conta, descrição, valor e projeto quando aplicável. Identifique custos fixos, variáveis e gastos extraordinários.",
+    "DRE disponível de janeiro a outubro": "Anexe a Demonstração do Resultado do Exercício disponível para janeiro a outubro de 2026, por mês. Identifique a origem, gerencial ou contábil, e quais meses estão fechados.",
+    "Projeções de novembro e dezembro": "Apresente novembro e dezembro de 2026 separadamente, com valores previstos por conta. Identifique o que já foi realizado, o que é estimativa e como o valor foi calculado.",
+    "Orçamento e metas de 2026 ou registro de indisponibilidade": "Anexe o orçamento de 2026 e o documento de metas usado pela gestão, indicando indicador, período e valor-alvo. Se algum documento não foi elaborado, registre isso nas observações.",
+    "Propostas para 2027 ou registro de indisponibilidade": "Envie as planilhas ou apresentações já preparadas para 2027. Identifique os meses, áreas e metas contemplados. Se ainda não houver proposta, informe essa situação.",
+    "Versões, aprovações e premissas": "Para cada versão enviada, informe data, responsável e situação da aprovação. Descreva as hipóteses usadas, como volume de projetos, preço médio ou custo de instalação.",
+    "Propostas da amostra de casos": "Selecione, como amostra inicial, cinco negociações de 2026, se disponíveis. Atribua um código a cada caso e anexe a proposta enviada, com data, serviço, preço e condições comerciais.",
+    "Respostas e resultados": "Para cada código, informe a resposta do cliente, a data e o desfecho: ganho, perdido ou em aberto. Anexe o registro correspondente do CRM, e-mail ou mensagem, quando disponível.",
+    "Motivos de perda com evidências": "Para cada perda, registre o motivo informado pelo cliente e vincule a evidência ao código do caso. Quando houver apenas percepção do vendedor, identifique-a como hipótese.",
+    "Prazos previstos, realizados e aceites": "Nos projetos de 2026, relacione código do projeto, cidade, data prometida, data efetiva da instalação e data do aceite. Indique a causa registrada dos atrasos e anexe o aceite disponível.",
+    "Retrabalho e respectivos custos": "Liste os retornos para correção por projeto. Descreva o problema, horas adicionais, materiais, deslocamentos e custo total. Sinalize valores estimados.",
+    "Disponibilidade atual da rede": "Informe a capacidade atual por instalador ou equipe, região atendida, unidade de capacidade (por exemplo, instalações por semana) e agenda já comprometida.",
+    "Sistemas, relatórios e responsáveis": "Liste os sistemas e planilhas utilizados em vendas, projetos e finanças. Para cada relatório, indique quem atualiza, frequência, campos disponíveis e onde a informação é consultada.",
+    "Exemplo de exportação ou demonstração da rotina": "Anexe uma exportação de exemplo em XLSX, CSV ou PDF. Quando a rotina depender de consulta em tela, descreva o caminho até o relatório e o filtro aplicado. Não inclua senhas.",
+    "Papéis da equipe e custos totais": "Envie o quadro atual por função, área e tipo de vínculo, com quantidade de pessoas, atividade principal e custo mensal total. A identificação por função é suficiente.",
+    "Contratos e despesas recorrentes": "Relacione contratos recorrentes, como aluguel, software e serviços terceirizados. Indique fornecedor, objeto, periodicidade, valor, vencimento e reajuste. Identifique os serviços dos quais a operação depende.",
+    "Mudanças previstas para 2027": "Liste admissões, contratações, encerramentos ou reajustes previstos para 2027. Indique função ou serviço afetado, mês esperado e efeito mensal estimado no custo.",
+    "Investimentos propostos por mês e justificativa": "Liste cada investimento proposto para 2027, como aquisição de equipamento ou expansão da capacidade. Informe mês previsto, área solicitante e qual necessidade operacional será atendida.",
+    "Custo, prazo, capacidade e retorno estimado": "Por investimento, informe custo estimado, fonte do valor, calendário de desembolso e prazo para entrar em operação. Quantifique capacidade adicional e retorno quando houver base para o cálculo.",
+    "Regime e premissas para 2027": "Solicite à contabilidade um resumo do regime adotado e das premissas usadas na projeção de 2027. Por serviço ou receita, identifique tributos considerados, base, alíquota e momento previsto do recolhimento.",
+    "Validação da contabilidade e efeitos em margem, preço e caixa": "Anexe a memória de cálculo, nota técnica ou e-mail de validação do contador, com data. Indique o efeito esperado sobre preço, margem e desembolso e destaque pontos ainda em análise.",
+    "Histórico disponível de 2024": "Se disponível, envie a DRE ou relatório gerencial mensal de 2024, com receitas, custos, despesas e resultado. Identifique meses ausentes e a fonte dos dados.",
+    "Histórico disponível de 2025": "Envie o mesmo conjunto mensal para 2025, se disponível. Identifique a fonte, o período coberto e os meses com fechamento parcial.",
+    "Critérios comparáveis e diferenças entre os anos": "Descreva mudanças de plano de contas, classificação ou critério de apuração entre os anos e 2026. Quando uma conta mudou de nome ou composição, indique a correspondência. Caso o histórico não exista, informe os anos indisponíveis."
+  }
+}
