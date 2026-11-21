@@ -89,6 +89,13 @@ Uma ação só pode ser concluída depois das ações de que depende. Ao marcar 
 obrigatória. Toda mudança de status fica no **Histórico** da ação, com autor, data e observação, e avisa a
 outra parte. Ações e mensagens marcadas como internas não aparecem para o cliente.
 
+**Trocar quem executa e o prazo sem abrir a ação**: na lista do plano, na coluna "Quem executa", clique em
+**✎ Alterar quem executa e prazo**. Escolha uma pessoa com acesso ao projeto (ela recebe um aviso) ou escreva o
+nome de quem ainda não tem acesso (ex.: "Equipe financeira"), ajuste a data e clique em **Salvar**.
+
+**Códigos**: pedidos de informação usam PI-01, PI-02… e ações do plano AP-01, AP-02…. Ao criar um pedido ou
+uma ação, deixe o código em branco e o sistema usa o próximo número livre.
+
 ## Agenda e decisões (fase 3)
 
 Em **Agenda e decisões**, a consultoria agenda encontros, registra a ata e marca o encontro como realizado,
@@ -147,3 +154,28 @@ No projeto, botão **Ferramentas de gestão** (também no plano, em "Ferramentas
 Cada ferramenta tem o painel "Como usar", o campo de conclusões, o botão **Gerar ação** em cada item (a ação
 entra no plano sem executor e sem prazo) e **Baixar planilha (CSV)**. Nascem internas; marque "Compartilhar com
 o cliente" para ele ver (sem editar).
+
+## Relatórios automáticos
+
+No projeto, clique em **Relatórios** e depois em **Gerar relatório**. O sistema lê as ferramentas, o plano de
+ação, os pedidos de informação e as decisões e monta um rascunho com: resumo executivo, visão geral,
+diagnóstico, prioridades, andamento do plano, riscos e próximos passos (30 dias). Na página de cada
+ferramenta, **Gerar análise** faz o mesmo só para aquela ferramenta.
+
+O rascunho é montado por regras fixas, a partir dos números e do texto cadastrado, sem custo. Ele nasce
+**interno**. Para entregar ao cliente:
+
+1. Abra o relatório e clique em **Revisar e editar**.
+2. Ajuste o texto, acrescente o que só a consultoria sabe, remova ou reordene seções.
+3. Marque **Revisei o conteúdo e está pronto** e, se quiser, **Compartilhar com o cliente**. O banco não
+   deixa compartilhar um relatório que não foi marcado como revisado.
+4. Clique em **Salvar**. Para PDF, use **Imprimir ou salvar em PDF** e escolha "Salvar como PDF".
+
+A lista "Informações que faltam" aparece só para a consultoria.
+
+**Uso de relatórios** (menu do administrador) mostra quantos relatórios foram gerados por mês, quantos foram
+revisados e compartilhados. Serve para decidir quando vale ligar a análise com IA.
+
+**Análise com IA (opcional, desligada)**: quando a chave `ANTHROPIC_API_KEY` for cadastrada na Vercel, aparece
+o botão **Analisar com IA** ao lado de **Gerar relatório**. A IA escreve um texto mais elaborado a partir dos
+mesmos dados (sem nomes de pessoas), com custo por uso, e o rascunho passa pela mesma revisão.

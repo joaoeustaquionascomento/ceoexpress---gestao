@@ -1,6 +1,7 @@
 // Gera a migração que grava a biblioteca de modelos genérica a partir de
-// data/modelos/biblioteca.json. Rodar: node scripts/gerar-modelos.mjs
-// Atualiza os modelos com os mesmos códigos (D01–D16, A01–A30) e preserva
+// data/modelos/biblioteca.json. Rodar: node scripts/gerar-modelos.mjs <nome-da-nova-migração>.sql
+// (sempre uma migração nova; as já aplicadas não mudam).
+// Atualiza os modelos com os mesmos códigos (PI-01–PI-16, AP-01–AP-30) e preserva
 // os modelos criados pelo administrador com outros códigos.
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -46,5 +47,10 @@ on conflict (code) do update set kind = excluded.kind, title = excluded.title, r
   completion_criteria = excluded.completion_criteria, basis = excluded.basis, sort_order = excluded.sort_order;`);
 });
 
-writeFileSync("supabase/migrations/20261121001000_modelos_genericos.sql", out.join("\n") + "\n");
+const destino = process.argv[2];
+if (!destino || !/^\d{14}_[a-z0-9_]+\.sql$/.test(destino)) {
+  console.error("Informe o nome da nova migração, ex.: 20270101000000_modelos.sql");
+  process.exit(1);
+}
+writeFileSync(`supabase/migrations/${destino}`, out.join("\n") + "\n");
 console.log(`${lib.pedidos.length} pedidos e ${lib.acoes.length} ações`);

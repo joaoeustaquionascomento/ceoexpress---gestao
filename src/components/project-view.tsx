@@ -136,6 +136,9 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
             <Link href={`${basePath}/ferramentas`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
               Ferramentas de gestão
             </Link>
+            <Link href={`${basePath}/relatorios`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+              Relatórios
+            </Link>
             <Link href={`${basePath}/plano`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
               Abrir plano: lista, Kanban e calendário
             </Link>
@@ -164,7 +167,7 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
                       {a.completion_criteria && <p className="mt-1 text-xs text-muted">Critério: {a.completion_criteria}</p>}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">{a.objective_id ? objName.get(a.objective_id)?.split(" · ")[0] : "—"}</td>
-                    <td className="px-3 py-2">{a.owner_label ?? "A definir"}</td>
+                    <td className="px-3 py-2">{(a as unknown as { executor: { full_name: string } | null }).executor?.full_name ?? a.owner_label ?? "A definir"}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{formatDate(a.due_on)}</td>
                     <td className="px-3 py-2"><Badge tone={a.status === "concluida" ? "ok" : a.status === "bloqueada" ? "bad" : "neutral"}>{ACTION_STATUS[a.status] ?? a.status}</Badge></td>
                   </tr>

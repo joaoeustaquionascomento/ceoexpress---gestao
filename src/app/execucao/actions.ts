@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { nextCode } from "@/lib/codigos";
 import { createClient } from "@/lib/supabase/server";
 import { getProjectAccess } from "@/lib/access";
 
@@ -116,6 +117,10 @@ export async function saveAction(_: FormResult, form: FormData): Promise<FormRes
     const { error } = await supabase.from("action_items").update(fields).eq("id", actionId).eq("project_id", d.projectId);
     if (error) return { error: dbMessage(error.message, "Não foi possível salvar a ação.") };
   } else {
+    if (!fields.code) {
+      const { data: codes } = await supabase.from("action_items").select("code").eq("project_id", d.projectId);
+      fields.code = nextCode("AP", (codes ?? []).map((a) => a.code));
+    }
     const { data, error } = await supabase
       .from("action_items")
       .insert({ ...fields, project_id: d.projectId, company_id: project.company_id, created_by: access.userId })
@@ -318,6 +323,7 @@ export async function quickUpdateAction(_: FormResult, form: FormData): Promise<
   if (!access?.staff) return { error: "Só a consultoria edita o plano de ação." };
   const executor = optUuid.parse(form.get("executor_id") || null);
   const due = optDate.parse(form.get("due_on") || null);
+  const ownerLabel = optText(200).parse(form.get("owner_label"));
   const supabase = await createClient();
   const { data: current } = await supabase
     .from("action_items")
@@ -329,7 +335,7 @@ export async function quickUpdateAction(_: FormResult, form: FormData): Promise<
   if (due && current.starts_on && due < current.starts_on) return { error: "O prazo não pode ser antes do início." };
   const { error } = await supabase
     .from("action_items")
-    .update({ executor_id: executor, due_on: due })
+    .update({ executor_id: executor, owner_label: ownerLabel, due_on: due })
     .eq("id", actionId.data)
     .eq("project_id", projectId.data);
   if (error) return { error: dbMessage(error.message, "Não foi possível salvar.") };

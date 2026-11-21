@@ -30,7 +30,7 @@ export async function AppShell({
   const unread = await unreadCount();
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 print:hidden z-30 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="flex items-center gap-3" aria-label="Início">
             <Logo width={96} />
@@ -74,8 +74,8 @@ export async function AppShell({
           </ul>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">{children}</main>
-      <footer className="border-t border-line py-4 text-center text-xs text-muted">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8 print:max-w-none print:p-0">{children}</main>
+      <footer className="print:hidden border-t border-line py-4 text-center text-xs text-muted">
         CEOEXPRESS — Inteligência estratégica, execução e resultados em uma única plataforma.
       </footer>
     </div>

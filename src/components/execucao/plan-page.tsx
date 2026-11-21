@@ -51,7 +51,7 @@ export async function PlanPage({
   ]);
   const quick = (a: PlanAction) =>
     access.staff ? (
-      <QuickEdit actionId={a.id} projectId={id} executorId={a.executor_id} dueOn={a.due_on} people={people} />
+      <QuickEdit actionId={a.id} projectId={id} executorId={a.executor_id} ownerLabel={a.owner_label} dueOn={a.due_on} people={people} />
     ) : null;
 
   const base = `/${area}/projetos/${id}`;
@@ -117,6 +117,9 @@ export async function PlanPage({
         </Link>
         <Link href={`${base}/ferramentas`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Ferramentas
+        </Link>
+        <Link href={`${base}/relatorios`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+          Relatórios
         </Link>
         <a href={`/exportar/${id}/acoes`} download className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Baixar CSV
@@ -214,9 +217,11 @@ function ListView({
                   </Link>
                   {a.visibility === "internal" && <span className="ml-2"><Badge tone="warn">Interna</Badge></span>}
                   {waiting.has(a.id) && <span className="ml-2"><Badge tone="warn">Aguardando outra ação</Badge></span>}
-                  <div className="mt-1 max-w-sm">{quick(a)}</div>
                 </td>
-                <td className="px-3 py-2">{executorName(a)}</td>
+                <td className="min-w-64 px-3 py-2">
+                  <p>{executorName(a)}</p>
+                  <div className="mt-1">{quick(a)}</div>
+                </td>
                 <td className={`whitespace-nowrap px-3 py-2 ${isOverdue(a) ? "font-semibold text-bad" : ""}`}>{formatDate(a.due_on)}</td>
                 <td className="px-3 py-2"><Badge tone={PRIORITY[a.priority]?.tone}>{PRIORITY[a.priority]?.label}</Badge></td>
                 <td className="px-3 py-2"><Badge tone={statusTone(a.status)}>{ACTION_STATUS[a.status]}</Badge></td>

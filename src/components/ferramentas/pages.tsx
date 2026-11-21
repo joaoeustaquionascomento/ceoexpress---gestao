@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteToolForm, GenerateActionButton, NewToolForm, ToolEditor } from "@/components/ferramentas/editor";
 import { ToolView } from "@/components/ferramentas/views";
+import { ToolAnalysisCard } from "@/components/relatorios/pages";
 import { BackLink, Badge, Card, EmptyState, PageTitle } from "@/components/ui";
 import { getProjectAccess } from "@/lib/access";
 import { getProjectHeader, type Area } from "@/lib/execucao";
@@ -166,6 +167,7 @@ export async function ToolPage({ area, projectId, toolId }: { area: Area; projec
               )}
             </Card>
           )}
+          {canEdit && <ToolAnalysisCard area={area as "admin" | "consultor"} projectId={projectId} toolId={toolId} />}
           {canEdit && <DeleteToolForm area={area} projectId={projectId} toolId={toolId} />}
         </div>
 

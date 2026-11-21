@@ -115,7 +115,7 @@ export function ActionForm({
 
       <fieldset className="grid gap-4 sm:grid-cols-3">
         <legend className="mb-2 font-semibold text-plum">Identificação</legend>
-        <Field label="Código" name="code" hint="Ex.: A12">
+        <Field label="Código" name="code" hint="Em branco, o sistema numera (AP-12…)">
           <input id="code" name="code" defaultValue={v("code")} className={inputClass} maxLength={20} />
         </Field>
         <Field label="Tipo" name="kind">
@@ -369,27 +369,33 @@ export function DecisionForm({
 }
 
 export function QuickEdit({
-  actionId, projectId, executorId, dueOn, people,
+  actionId, projectId, executorId, ownerLabel, dueOn, people,
 }: {
   actionId: string;
   projectId: string;
   executorId: string | null;
+  ownerLabel: string | null;
   dueOn: string | null;
   people: { id: string; name: string }[];
 }) {
   const [state, action] = useActionState(quickUpdateAction, undefined);
   return (
-    <details className="rounded-lg bg-surface px-3 text-sm" open={!!state?.error}>
-      <summary className="min-h-10 cursor-pointer py-2 font-semibold text-mauve">Alterar executor e prazo</summary>
-      <form action={action} className="space-y-2 pb-3">
+    <details className="group text-sm" open={!!state?.error}>
+      <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1 rounded-lg border border-line bg-surface px-3 font-semibold text-mauve hover:bg-tint [&::-webkit-details-marker]:hidden">
+        <span aria-hidden>✎</span> Alterar quem executa e prazo
+      </summary>
+      <form action={action} className="mt-2 space-y-2 rounded-lg border border-line bg-surface p-3">
         <Feedback state={state} />
         <input type="hidden" name="actionId" value={actionId} />
         <input type="hidden" name="projectId" value={projectId} />
-        <label htmlFor={`qe-${actionId}-ex`} className={labelClass}>Quem executa</label>
+        <label htmlFor={`qe-${actionId}-ex`} className={labelClass}>Quem executa (pessoa com acesso ao projeto)</label>
         <select id={`qe-${actionId}-ex`} name="executor_id" defaultValue={executorId ?? ""} className={inputClass}>
-          <option value="">Ninguém definido</option>
+          <option value="">Ninguém com acesso</option>
           {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
+        <label htmlFor={`qe-${actionId}-ol`} className={labelClass}>Ou escreva o nome</label>
+        <input id={`qe-${actionId}-ol`} name="owner_label" defaultValue={ownerLabel ?? ""} maxLength={200} placeholder="Ex.: Equipe financeira" className={inputClass} />
+        <p className="text-xs text-muted">Use o nome escrito para quem ainda não tem acesso à plataforma. Se escolher uma pessoa acima, ela recebe um aviso.</p>
         <label htmlFor={`qe-${actionId}-due`} className={labelClass}>Prazo</label>
         <input id={`qe-${actionId}-due`} name="due_on" type="date" defaultValue={dueOn ?? ""} className={inputClass} />
         <SubmitButton pendingText="Salvando…">Salvar</SubmitButton>
