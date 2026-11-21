@@ -5,11 +5,19 @@ import { Alert, inputClass, labelClass } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { ToolView } from "@/components/ferramentas/views";
 import {
+  BOARDS,
+  BSC_PERSPECTIVES,
+  TOOL_GROUPS,
+  isBoardKind,
+  krProgress,
+  type BoardData,
+  type BoardKind,
+  type BscData,
+  type OkrData,
   GUT_SCALE,
   ISHIKAWA_CATS,
   SWOT_QUADRANTS,
   TOOLS,
-  TOOL_KINDS,
   gutScore,
   type GutData,
   type IshikawaData,
@@ -208,6 +216,139 @@ function ParetoEditor({ data, set }: { data: ParetoData; set: (d: ParetoData) =>
   );
 }
 
+function BoardEditor({ kind, data, set }: { kind: BoardKind; data: BoardData; set: (d: BoardData) => void }) {
+  const cfg = BOARDS[kind];
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <label htmlFor="foco" className={labelClass}>{cfg.foco.label}</label>
+        <input id="foco" value={data.foco} placeholder={cfg.foco.placeholder} onChange={(e) => set({ ...data, foco: e.target.value })} className={inputClass} />
+      </div>
+      <div className={`grid gap-4 sm:grid-cols-2 ${cfg.columns === 3 ? "lg:grid-cols-3" : ""}`}>
+        {cfg.sections.map((sec) => (
+          <fieldset key={sec.key} className="space-y-2 rounded-xl border border-line bg-surface p-3">
+            <legend className="px-1 font-semibold text-plum">{sec.label}</legend>
+            <p className="text-xs text-muted">{sec.hint}</p>
+            {cfg.rating && (
+              <label className="block space-y-1 text-xs">
+                <span className="font-semibold">{cfg.rating.label}</span>
+                <select
+                  value={data.notas[sec.key] ?? 0}
+                  onChange={(e) => set({ ...data, notas: { ...data.notas, [sec.key]: Number(e.target.value) } })}
+                  className={inputClass}
+                >
+                  <option value={0}>Não avaliado</option>
+                  {cfg.rating.levels.map((l, i) => <option key={i} value={i + 1}>{i + 1} · {l}</option>)}
+                </select>
+              </label>
+            )}
+            <ListEditor
+              label={sec.label}
+              placeholder="Escreva e tecle Enter"
+              items={data.secoes[sec.key] ?? []}
+              onChange={(v) => set({ ...data, secoes: { ...data.secoes, [sec.key]: v } })}
+            />
+          </fieldset>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BscEditor({ data, set }: { data: BscData; set: (d: BscData) => void }) {
+  const setPer = (key: keyof BscData["perspectivas"], list: BscData["perspectivas"][typeof key]) =>
+    set({ ...data, perspectivas: { ...data.perspectivas, [key]: list } });
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <label htmlFor="visao" className={labelClass}>Visão ou foco estratégico do período</label>
+        <textarea id="visao" rows={2} value={data.visao} onChange={(e) => set({ ...data, visao: e.target.value })} className={inputClass} />
+      </div>
+      {BSC_PERSPECTIVES.map((p) => {
+        const list = data.perspectivas[p.key];
+        const upd = (id: string, patch: Partial<(typeof list)[number]>) => setPer(p.key, list.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+        return (
+          <fieldset key={p.key} className="space-y-2 rounded-xl border border-line bg-surface p-3">
+            <legend className="px-1 font-semibold text-plum">{p.label}</legend>
+            <p className="text-xs text-muted">{p.hint}</p>
+            <ul className="space-y-2">
+              {list.map((o, n) => (
+                <li key={o.id} className="grid gap-1 rounded-lg bg-canvas p-2 sm:grid-cols-[2fr_1.5fr_1fr_auto]">
+                  <label className="sr-only" htmlFor={`bo-${o.id}`}>Objetivo {n + 1}</label>
+                  <input id={`bo-${o.id}`} value={o.text} placeholder="Objetivo" onChange={(e) => upd(o.id, { text: e.target.value })} className={inputClass} />
+                  <label className="sr-only" htmlFor={`bi-${o.id}`}>Indicador</label>
+                  <input id={`bi-${o.id}`} value={o.indicador} placeholder="Indicador" onChange={(e) => upd(o.id, { indicador: e.target.value })} className={inputClass} />
+                  <label className="sr-only" htmlFor={`bm-${o.id}`}>Meta</label>
+                  <input id={`bm-${o.id}`} value={o.meta} placeholder="Meta e prazo" onChange={(e) => upd(o.id, { meta: e.target.value })} className={inputClass} />
+                  <button type="button" aria-label={`Remover objetivo ${o.text}`} onClick={() => setPer(p.key, list.filter((x) => x.id !== o.id))} className={remove}>×</button>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className={small} onClick={() => setPer(p.key, [...list, { id: newId(), text: "", indicador: "", meta: "" }])}>
+              Adicionar objetivo
+            </button>
+          </fieldset>
+        );
+      })}
+    </div>
+  );
+}
+
+function OkrEditor({ data, set }: { data: OkrData; set: (d: OkrData) => void }) {
+  const setObj = (id: string, patch: Partial<OkrData["objetivos"][number]>) =>
+    set({ ...data, objetivos: data.objetivos.map((o) => (o.id === id ? { ...o, ...patch } : o)) });
+  const numInput = (id: string, label: string, value: number, onChange: (v: number) => void) => (
+    <label className="space-y-1 text-xs">
+      <span className="block font-semibold">{label}</span>
+      <input id={id} type="number" step="any" inputMode="decimal" value={Number.isFinite(value) ? value : 0} onChange={(e) => onChange(Number(e.target.value) || 0)} className={inputClass} />
+    </label>
+  );
+  return (
+    <div className="space-y-4">
+      <div className="max-w-sm space-y-1">
+        <label htmlFor="periodo" className={labelClass}>Período</label>
+        <input id="periodo" value={data.periodo} placeholder="Ex.: 1º trimestre" onChange={(e) => set({ ...data, periodo: e.target.value })} className={inputClass} />
+      </div>
+      {data.objetivos.map((o, n) => (
+        <fieldset key={o.id} className="space-y-3 rounded-xl border border-line bg-surface p-3">
+          <legend className="px-1 font-semibold text-plum">Objetivo {n + 1}</legend>
+          <div className="flex items-center gap-1">
+            <label className="sr-only" htmlFor={`ob-${o.id}`}>Objetivo {n + 1}</label>
+            <input id={`ob-${o.id}`} value={o.text} placeholder="Objetivo qualitativo" onChange={(e) => setObj(o.id, { text: e.target.value })} className={inputClass} />
+            <button type="button" aria-label="Remover objetivo" onClick={() => set({ ...data, objetivos: data.objetivos.filter((x) => x.id !== o.id) })} className={remove}>×</button>
+          </div>
+          <ul className="space-y-2">
+            {o.krs.map((k, j) => {
+              const upd = (patch: Partial<typeof k>) => setObj(o.id, { krs: o.krs.map((x) => (x.id === k.id ? { ...x, ...patch } : x)) });
+              return (
+                <li key={k.id} className="space-y-2 rounded-lg bg-canvas p-2">
+                  <div className="flex items-center gap-1">
+                    <label className="sr-only" htmlFor={`kr-${k.id}`}>Resultado-chave {j + 1}</label>
+                    <input id={`kr-${k.id}`} value={k.text} placeholder="Resultado-chave mensurável" onChange={(e) => upd({ text: e.target.value })} className={inputClass} />
+                    <button type="button" aria-label="Remover resultado-chave" onClick={() => setObj(o.id, { krs: o.krs.filter((x) => x.id !== k.id) })} className={remove}>×</button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+                    {numInput(`kri-${k.id}`, "Partida", k.inicial, (v) => upd({ inicial: v }))}
+                    {numInput(`krm-${k.id}`, "Meta", k.meta, (v) => upd({ meta: v }))}
+                    {numInput(`kra-${k.id}`, "Atual", k.atual, (v) => upd({ atual: v }))}
+                    <p className="col-span-3 text-sm sm:col-span-1 sm:pb-3">Progresso: <span className="font-semibold tabular-nums">{krProgress(k)}%</span></p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <button type="button" className={small} onClick={() => setObj(o.id, { krs: [...o.krs, { id: newId(), text: "", inicial: 0, meta: 100, atual: 0 }] })}>
+            Adicionar resultado-chave
+          </button>
+        </fieldset>
+      ))}
+      <button type="button" className={small} onClick={() => set({ ...data, objetivos: [...data.objetivos, { id: newId(), text: "", krs: [] }] })}>
+        Adicionar objetivo
+      </button>
+    </div>
+  );
+}
+
 export function ToolEditor({
   area, projectId, toolId, kind, initial, title, notes, shared,
 }: {
@@ -243,10 +384,13 @@ export function ToolEditor({
       {kind === "cinco_porques" && <WhyEditor data={data as WhyData} set={set} />}
       {kind === "ishikawa" && <IshikawaEditor data={data as IshikawaData} set={set} />}
       {kind === "pareto" && <ParetoEditor data={data as ParetoData} set={set} />}
+      {kind === "bsc" && <BscEditor data={data as BscData} set={set} />}
+      {kind === "okr" && <OkrEditor data={data as OkrData} set={set} />}
+      {isBoardKind(kind) && <BoardEditor kind={kind} data={data as BoardData} set={set} />}
 
-      {(kind === "gut" || kind === "pareto") && (
+      {(kind === "gut" || kind === "pareto" || kind === "okr") && (
         <section className="space-y-2">
-          <h2 className="font-semibold text-plum">{kind === "gut" ? "Ranking" : "Gráfico"}</h2>
+          <h2 className="font-semibold text-plum">{kind === "gut" ? "Ranking" : kind === "okr" ? "Progresso" : "Gráfico"}</h2>
           <ToolView kind={kind} data={data} />
         </section>
       )}
@@ -281,7 +425,11 @@ export function NewToolForm({ area, projectId }: { area: string; projectId: stri
       <div className="space-y-1">
         <label htmlFor="kind" className={labelClass}>Ferramenta</label>
         <select id="kind" name="kind" value={kind} onChange={(e) => setKind(e.target.value as ToolKind)} className={inputClass}>
-          {TOOL_KINDS.map((k) => <option key={k} value={k}>{TOOLS[k].label}</option>)}
+          {TOOL_GROUPS.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.kinds.map((k) => <option key={k} value={k}>{TOOLS[k].label}</option>)}
+            </optgroup>
+          ))}
         </select>
         <p className="text-xs text-muted">{TOOLS[kind].summary}</p>
       </div>

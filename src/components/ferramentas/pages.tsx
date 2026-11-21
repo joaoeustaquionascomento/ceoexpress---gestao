@@ -6,7 +6,7 @@ import { ToolAnalysisCard } from "@/components/relatorios/pages";
 import { BackLink, Badge, Card, EmptyState, PageTitle } from "@/components/ui";
 import { getProjectAccess } from "@/lib/access";
 import { getProjectHeader, type Area } from "@/lib/execucao";
-import { TOOLS, TOOL_KINDS, actionCandidates, isToolKind, normalize } from "@/lib/ferramentas";
+import { TOOLS, TOOL_GROUPS, actionCandidates, isToolKind, normalize } from "@/lib/ferramentas";
 import { formatDateTime } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,11 +58,18 @@ export async function ToolsListPage({ area, projectId }: { area: Area; projectId
             </Card>
             <Card>
               <h2 className="mb-2 font-semibold text-plum">Qual usar?</h2>
-              <ul className="space-y-2 text-sm">
-                {TOOL_KINDS.map((k) => (
-                  <li key={k}><span className="font-semibold">{TOOLS[k].label}:</span> <span className="text-muted">{TOOLS[k].when}</span></li>
+              <div className="space-y-3">
+                {TOOL_GROUPS.map((g) => (
+                  <div key={g.label}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-rose">{g.label}</p>
+                    <ul className="mt-1 space-y-2 text-sm">
+                      {g.kinds.map((k) => (
+                        <li key={k}><span className="font-semibold">{TOOLS[k].label}:</span> <span className="text-muted">{TOOLS[k].when}</span></li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </Card>
           </div>
         )}
