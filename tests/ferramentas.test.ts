@@ -56,3 +56,70 @@ describe("Itens para ações e exportação", () => {
     expect(toolTable("gut", { items: [{ id: "a", text: "X", g: 1, u: 2, t: 3 }] }).rows[0]).toEqual([1, "X", 1, 2, 3, 6]);
   });
 });
+
+describe("ferramentas de estratégia e execução", async () => {
+  const f = await import("@/lib/ferramentas");
+  const { readTool, ruleToolReport } = await import("@/lib/relatorios/regras");
+
+  it("todas as 12 ferramentas têm ajuda, normalizam vazio e exportam", () => {
+    expect(f.TOOL_KINDS).toHaveLength(12);
+    expect(f.TOOL_GROUPS.flatMap((g) => g.kinds).sort()).toEqual([...f.TOOL_KINDS].sort());
+    for (const k of f.TOOL_KINDS) {
+      expect(f.TOOLS[k].steps.length).toBeGreaterThan(2);
+      if (k !== "cinco_porques") expect(f.toolTable(k, {}).rows).toEqual([]);
+      expect(f.actionCandidates(k, null)).toEqual([]);
+      expect(readTool({ id: "x", kind: k, title: "t", data: {}, notes: null }).vazia).toBe(true);
+    }
+  });
+
+  it("quadros: limpa seções desconhecidas, limita notas e só gera ação das seções certas", () => {
+    const d = f.normalize("porter", {
+      foco: " Setor ",
+      secoes: { rivalidade: [{ id: "a", text: "Guerra de preço" }], inventada: [{ id: "b", text: "x" }], clientes: [{ text: "" }] },
+      notas: { rivalidade: 9, entrantes: -2, clientes: "3" },
+    });
+    expect(d.foco).toBe("Setor");
+    expect(Object.keys(d.secoes)).toEqual(["rivalidade", "entrantes", "substitutos", "clientes", "fornecedores"]);
+    expect(d.notas).toMatchObject({ rivalidade: 5, entrantes: 0, clientes: 3 });
+    expect(f.toolTable("porter", d).rows).toEqual([["Rivalidade entre concorrentes", "Guerra de preço", "5 · Muito alto"]]);
+
+    const e = { secoes: { fazer: [{ id: "1", text: "Pagar folha" }], eliminar: [{ id: "2", text: "Relatório inútil" }] } };
+    expect(f.actionCandidates("eisenhower", e).map((c) => c.text)).toEqual(["Pagar folha"]);
+    expect(f.actionCandidates("canvas", { secoes: { proposta: [{ id: "1", text: "x" }] } })).toEqual([]);
+  });
+
+  it("OKR calcula progresso, inclusive meta para baixo, e só propõe ação para o que falta", () => {
+    expect(f.krProgress({ inicial: 0, meta: 100, atual: 25 })).toBe(25);
+    expect(f.krProgress({ inicial: 20, meta: 10, atual: 15 })).toBe(50);
+    expect(f.krProgress({ inicial: 0, meta: 10, atual: 30 })).toBe(100);
+    expect(f.krProgress({ inicial: 5, meta: 5, atual: 5 })).toBe(100);
+    const d = { objetivos: [{ id: "o", text: "Crescer", krs: [{ id: "a", text: "Clientes", inicial: 0, meta: 10, atual: 10 }, { id: "b", text: "Margem", inicial: "10", meta: "20", atual: "12,5" }] }] };
+    expect(f.okrProgress(f.normalize("okr", d).objetivos[0])).toBe(63);
+    expect(f.actionCandidates("okr", d).map((c) => c.text)).toEqual(["Margem"]);
+    expect(readTool({ id: "x", kind: "okr", title: "t", data: d, notes: null }).implicacoes[0]).toContain("1 resultado-chave está abaixo de 40%");
+  });
+
+  it("BSC aponta perspectiva vazia e objetivo sem indicador", () => {
+    const d = { perspectivas: { financeira: [{ id: "1", text: "Aumentar margem", indicador: "Margem bruta", meta: "30%" }], clientes: [{ id: "2", text: "Fidelizar" }] } };
+    expect(f.actionCandidates("bsc", d)[0].text).toBe("Aumentar margem (meta: 30%)");
+    const r = readTool({ id: "x", kind: "bsc", title: "t", data: d, notes: null });
+    expect(r.implicacoes[0]).toContain("Processos internos, Aprendizado e crescimento");
+    expect(r.recomendacoes).toContain('Completar indicador e meta de "Fidelizar".');
+  });
+
+  it("análises de quadros: Porter, PESTEL, Eisenhower e PDCA", () => {
+    const porter = readTool({ id: "x", kind: "porter", title: "t", data: { secoes: { clientes: [{ id: "1", text: "Três clientes = 70% da receita" }] }, notas: { clientes: 5, rivalidade: 4 } }, notes: null });
+    expect(porter.implicacoes[0]).toContain("pressão competitiva média é alta");
+    expect(porter.recomendacoes[0]).toContain("dependência dos maiores clientes");
+
+    const pdca = readTool({ id: "x", kind: "pdca", title: "t", data: { foco: "Atrasos", secoes: { planejar: [{ id: "1", text: "Meta" }], executar: [{ id: "2", text: "Feito" }] } }, notes: null });
+    expect(pdca.implicacoes.join(" ")).toContain("ainda não foi medido");
+    expect(pdca.recomendacoes[0]).toBe("Avançar para a etapa Checar (C).");
+
+    const eis = ruleToolReport({ id: "x", kind: "eisenhower", title: "Agenda", data: { secoes: { fazer: [{ id: "1", text: "A" }, { id: "2", text: "B" }], agendar: [{ id: "3", text: "C" }] } }, notes: null }, []);
+    expect(eis.secoes.find((s) => s.titulo === "Implicações para o negócio")!.texto).toContain("apagando incêndios");
+
+    const pestel = readTool({ id: "x", kind: "pestel", title: "t", data: { secoes: { economico: [{ id: "1", text: "Juros" }] }, notas: { economico: 5 } }, notes: null });
+    expect(pestel.recomendacoes[0]).toContain("Econômico");
+  });
+});

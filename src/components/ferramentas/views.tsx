@@ -3,7 +3,16 @@
  * prévia no editor). Sem hooks: funcionam no servidor e no navegador.
  */
 import {
+  BOARDS,
+  BSC_PERSPECTIVES,
   GUT_SCALE,
+  isBoardKind,
+  krProgress,
+  okrProgress,
+  type BoardData,
+  type BoardKind,
+  type BscData,
+  type OkrData,
   ISHIKAWA_CATS,
   SWOT_QUADRANTS,
   gutRanking,
@@ -174,8 +183,109 @@ export function ParetoView({ data }: { data: ParetoData }) {
   );
 }
 
+const gridCols: Record<2 | 3, string> = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-2 lg:grid-cols-3" };
+
+/** Quadro genérico (Canvas, PESTEL, 5 Forças, Eisenhower, PDCA). */
+export function BoardView({ kind, data }: { kind: BoardKind; data: BoardData }) {
+  const cfg = BOARDS[kind];
+  return (
+    <div className="space-y-3">
+      {data.foco && <p className="rounded-xl bg-plum px-4 py-3 text-white"><span className="block text-xs uppercase tracking-wider opacity-80">{cfg.foco.label}</span><span className="font-semibold">{data.foco}</span></p>}
+      <div className={`grid gap-3 ${gridCols[cfg.columns]}`}>
+        {cfg.sections.map((sec) => {
+          const n = data.notas[sec.key] ?? 0;
+          return (
+            <section key={sec.key} className={`rounded-xl border p-4 ${sec.tone ? quadTone[sec.tone] : "border-line bg-surface"}`}>
+              <h3 className="font-semibold text-ink">{sec.label}</h3>
+              <p className="mb-2 text-xs text-muted">{sec.hint}</p>
+              {cfg.rating && (
+                <p className="mb-2 text-xs">
+                  <span className="text-muted">{cfg.rating.label}: </span>
+                  {n ? (
+                    <>
+                      <span className="font-semibold">{cfg.rating.levels[n - 1]}</span>
+                      <span className="ml-2 inline-flex gap-0.5 align-middle" aria-hidden>
+                        {[1, 2, 3, 4, 5].map((i) => <span key={i} className={`inline-block h-2 w-3 rounded-sm ${i <= n ? "bg-plum" : "bg-line"}`} />)}
+                      </span>
+                    </>
+                  ) : <span className="text-muted">não avaliado</span>}
+                </p>
+              )}
+              {data.secoes[sec.key].length === 0 ? <p className="text-sm text-muted">Nada registrado.</p> : (
+                <ul className="list-disc space-y-1 pl-5 text-sm">{data.secoes[sec.key].map((i) => <li key={i.id}>{i.text}</li>)}</ul>
+              )}
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function BscView({ data }: { data: BscData }) {
+  return (
+    <div className="space-y-3">
+      {data.visao && <p className="rounded-xl bg-plum px-4 py-3 text-white"><span className="block text-xs uppercase tracking-wider opacity-80">Foco estratégico</span><span className="font-semibold">{data.visao}</span></p>}
+      {BSC_PERSPECTIVES.map((p) => (
+        <section key={p.key} className="overflow-x-auto rounded-xl border border-line bg-surface">
+          <h3 className="border-b border-line bg-tint px-3 py-2 font-semibold text-plum">{p.label} <span className="text-xs font-normal text-muted">· {p.hint}</span></h3>
+          {data.perspectivas[p.key].length === 0 ? <p className="px-3 py-2 text-sm text-muted">Nenhum objetivo.</p> : (
+            <table className="w-full min-w-[520px] table-fixed text-left text-sm">
+              <thead className="text-xs uppercase tracking-wider text-muted">
+                <tr><th className="w-1/2 px-3 py-1">Objetivo</th><th className="w-1/4 px-3 py-1">Indicador</th><th className="w-1/4 px-3 py-1">Meta</th></tr>
+              </thead>
+              <tbody>
+                {data.perspectivas[p.key].map((o) => (
+                  <tr key={o.id} className="border-t border-line"><td className="px-3 py-2 font-semibold">{o.text}</td><td className="px-3 py-2">{o.indicador || "—"}</td><td className="px-3 py-2">{o.meta || "—"}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function Progress({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex items-center gap-2" title={`${label}: ${value}%`}>
+      <div className="h-3 flex-1 rounded bg-line" role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}>
+        <div className={`h-3 rounded ${value >= 100 ? "bg-ok" : "bg-plum"}`} style={{ width: `${value}%` }} />
+      </div>
+      <span className="w-10 text-right text-sm font-semibold tabular-nums">{value}%</span>
+    </div>
+  );
+}
+
+export function OkrView({ data }: { data: OkrData }) {
+  if (data.objetivos.length === 0) return <p className="text-sm text-muted">Nenhum objetivo registrado.</p>;
+  return (
+    <div className="space-y-3">
+      {data.periodo && <p className="text-sm"><span className="text-muted">Período:</span> <span className="font-semibold">{data.periodo}</span></p>}
+      {data.objetivos.map((o) => (
+        <section key={o.id} className="space-y-2 rounded-xl border border-line bg-surface p-4">
+          <h3 className="font-semibold text-plum">{o.text}</h3>
+          <Progress value={okrProgress(o)} label={`Progresso do objetivo ${o.text}`} />
+          <ul className="space-y-2 border-t border-line pt-2 text-sm">
+            {o.krs.map((k) => (
+              <li key={k.id} className="grid gap-1 sm:grid-cols-[1fr_14rem] sm:items-center">
+                <span>{k.text} <span className="text-xs text-muted">(de {fmt(k.inicial, 2)} para {fmt(k.meta, 2)}; atual {fmt(k.atual, 2)})</span></span>
+                <Progress value={krProgress(k)} label={k.text} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export function ToolView({ kind, data }: { kind: ToolKind; data: ToolData[ToolKind] }) {
+  if (isBoardKind(kind)) return <BoardView kind={kind} data={data as BoardData} />;
   switch (kind) {
+    case "bsc": return <BscView data={data as BscData} />;
+    case "okr": return <OkrView data={data as OkrData} />;
     case "swot": return <SwotView data={data as SwotData} />;
     case "gut": return <GutView data={data as GutData} />;
     case "cinco_porques": return <WhyView data={data as WhyData} />;

@@ -141,7 +141,7 @@ e clicar nele no e-mail marca como lido. Funciona depois de configurar `RESEND_A
   ou marque como "Cancelada", que mantém o registro.
 - Toda exclusão fica registrada na Auditoria.
 
-## Ferramentas de gestão (pacote diagnóstico)
+## Ferramentas de gestão
 
 No projeto, botão **Ferramentas de gestão** (também no plano, em "Ferramentas"). A consultoria cria e preenche:
 
@@ -154,6 +154,31 @@ No projeto, botão **Ferramentas de gestão** (também no plano, em "Ferramentas
 Cada ferramenta tem o painel "Como usar", o campo de conclusões, o botão **Gerar ação** em cada item (a ação
 entra no plano sem executor e sem prazo) e **Baixar planilha (CSV)**. Nascem internas; marque "Compartilhar com
 o cliente" para ele ver (sem editar).
+
+Além do diagnóstico (SWOT, GUT, 5 Porquês, Ishikawa e Pareto), há mais dois grupos:
+
+- **Estratégia**:
+  - **Modelo de negócio (Canvas)**, com nove blocos.
+  - **Balanced Scorecard**, com objetivo, indicador e meta nas quatro perspectivas.
+  - **OKR**, com objetivos e resultados-chave. Cada resultado tem valor de partida, meta e valor atual, e o progresso é calculado sozinho, inclusive quando a meta é reduzir um número.
+- **Execução e ambiente**:
+  - **Ciclo PDCA**.
+  - **Matriz de Eisenhower**.
+  - **PESTEL**, com nota de impacto por fator.
+  - **5 Forças de Porter**, com nota de intensidade por força.
+
+O botão **Gerar ação** aparece nas partes de cada ferramenta que fazem sentido virar ação:
+
+| Ferramenta | O que pode virar ação |
+| --- | --- |
+| Balanced Scorecard | Objetivos |
+| OKR | Resultados-chave ainda não atingidos |
+| PESTEL | Itens dos fatores |
+| 5 Forças de Porter | Itens das forças |
+| Matriz de Eisenhower | Quadrantes "Fazer agora", "Agendar" e "Delegar" |
+| Ciclo PDCA | Etapas "Planejar" e "Agir" |
+
+O Canvas é descritivo e não gera ações. Todas as ferramentas têm análise automática e exportação em CSV.
 
 ## Relatórios automáticos
 

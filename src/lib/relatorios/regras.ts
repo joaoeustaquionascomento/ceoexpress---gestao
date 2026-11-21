@@ -1,5 +1,9 @@
 import {
+  BOARDS,
+  BSC_PERSPECTIVES,
   ISHIKAWA_CATS,
+  krProgress,
+  okrProgress,
   SWOT_QUADRANTS,
   TOOLS,
   gutRanking,
@@ -163,6 +167,144 @@ export function readTool(tool: DossierTool, linked: DossierAction[] = []): ToolR
         ],
         vazia: false,
       };
+    }
+    case "bsc": {
+      const d = normalize("bsc", tool.data);
+      const per = BSC_PERSPECTIVES.map((p) => ({ ...p, objs: d.perspectivas[p.key] }));
+      const total = per.reduce((s, p) => s + p.objs.length, 0);
+      if (!total) return empty;
+      const missing = per.filter((p) => !p.objs.length);
+      const incomplete = per.flatMap((p) => p.objs.filter((o) => !o.indicador || !o.meta));
+      return {
+        leitura: `O Balanced Scorecard tem ${plural(total, "objetivo", "objetivos")} em ${per.length - missing.length} de 4 perspectivas.${d.visao ? ` Foco estratégico: ${d.visao}.` : ""}`,
+        achados: per.filter((p) => p.objs.length).map((p) =>
+          `${p.label} (${p.objs.length}): ${p.objs.map((o) => `${o.text}${o.indicador ? ` [${o.indicador}${o.meta ? `, meta ${o.meta}` : ""}]` : ""}`).join("; ")}`,
+        ),
+        implicacoes: [
+          missing.length
+            ? `Perspectivas sem objetivo: ${missing.map((p) => p.label).join(", ")}. A estratégia fica desequilibrada e o resultado financeiro perde sustentação.`
+            : "As quatro perspectivas têm objetivos, o que dá equilíbrio entre resultado de curto prazo e capacidades de longo prazo.",
+          incomplete.length
+            ? `${plural(incomplete.length, "objetivo ainda não tem", "objetivos ainda não têm")} indicador ou meta: sem isso não há como acompanhar.`
+            : "Todos os objetivos têm indicador e meta, o que permite acompanhar o avanço.",
+        ],
+        recomendacoes: [
+          ...missing.map((p) => `Definir ao menos um objetivo para a perspectiva ${p.label}.`),
+          ...incomplete.slice(0, 4).map((o) => `Completar indicador e meta de "${o.text}".`),
+          ...per.flatMap((p) => p.objs).filter((o) => !inPlan(o.meta ? `${o.text} (meta: ${o.meta})` : o.text)).slice(0, 4)
+            .map((o) => `Ligar o objetivo "${o.text}" a uma ação do plano, com responsável e prazo.`),
+          "Revisar os indicadores em reunião mensal com a direção.",
+        ],
+        vazia: false,
+      };
+    }
+    case "okr": {
+      const d = normalize("okr", tool.data);
+      const objs = d.objetivos.filter((o) => o.krs.length);
+      if (!d.objetivos.length) return empty;
+      const avg = objs.length ? Math.round(objs.reduce((s, o) => s + okrProgress(o), 0) / objs.length) : 0;
+      const krs = d.objetivos.flatMap((o) => o.krs.map((k) => ({ ...k, obj: o.text, p: krProgress(k) })));
+      const low = krs.filter((k) => k.p < 40);
+      const done = krs.filter((k) => k.p >= 100);
+      return {
+        leitura: `${plural(d.objetivos.length, "objetivo", "objetivos")} com ${plural(krs.length, "resultado-chave", "resultados-chave")}${d.periodo ? ` para ${d.periodo}` : ""}. Progresso médio: ${avg}%.`,
+        achados: d.objetivos.map((o) => `${o.text}: ${okrProgress(o)}% (${o.krs.map((k) => `${k.text} ${krProgress(k)}%`).join("; ") || "sem resultados-chave"})`),
+        implicacoes: [
+          low.length
+            ? `${plural(low.length, "resultado-chave está", "resultados-chave estão")} abaixo de 40% e merecem atenção ou revisão de rota.`
+            : "Nenhum resultado-chave está abaixo de 40%: o ciclo avança de forma equilibrada.",
+          done.length ? `${plural(done.length, "resultado-chave já foi atingido", "resultados-chave já foram atingidos")}.` : "Nenhum resultado-chave foi atingido até agora.",
+          ...(d.objetivos.length > 3 ? ["Há mais de três objetivos no ciclo: o foco tende a se diluir."] : []),
+        ],
+        recomendacoes: [
+          ...low.slice(0, 4).map((k) => `Rever o plano para "${k.text}" (${k.p}%), do objetivo "${k.obj}"${planNote(k.text)}.`),
+          ...d.objetivos.filter((o) => !o.krs.length).map((o) => `Definir resultados-chave mensuráveis para "${o.text}".`),
+          "Atualizar os valores atuais a cada semana ou quinzena.",
+        ],
+        vazia: false,
+      };
+    }
+    default: {
+      const cfg = BOARDS[tool.kind];
+      const d = normalize(tool.kind, tool.data);
+      const secs = cfg.sections.map((sec) => ({ ...sec, items: d.secoes[sec.key], nota: d.notas[sec.key] ?? 0 }));
+      const total = secs.reduce((s, x) => s + x.items.length, 0);
+      if (!total) return empty;
+      const filled = secs.filter((x) => x.items.length);
+      const emptySecs = secs.filter((x) => !x.items.length);
+      const list = (x: (typeof secs)[number]) =>
+        `${x.label}${cfg.rating && x.nota ? ` (${cfg.rating.label.toLowerCase()}: ${cfg.rating.levels[x.nota - 1].toLowerCase()})` : ""}: ${x.items.slice(0, 5).map((i) => i.text).join("; ")}${x.items.length > 5 ? "; …" : ""}`;
+      const leituraBase = `${TOOLS[tool.kind].label}${d.foco ? ` sobre "${d.foco}"` : ""}: ${plural(total, "item", "itens")} em ${filled.length} de ${secs.length} ${secs.length === 1 ? "bloco" : "blocos"}.`;
+      const achados = filled.map(list);
+      const strong = [...secs].filter((x) => x.nota >= 4).sort((a, b) => b.nota - a.nota);
+      const implicacoes: string[] = [];
+      const recomendacoes: string[] = [];
+
+      if (tool.kind === "canvas") {
+        if (emptySecs.length) implicacoes.push(`Blocos sem conteúdo: ${emptySecs.map((x) => x.label).join(", ")}. O modelo ainda não está completo.`);
+        if (!d.secoes.proposta.length || !d.secoes.clientes.length)
+          implicacoes.push("Sem clareza sobre clientes e proposta de valor, os demais blocos ficam sem referência.");
+        else implicacoes.push("Clientes e proposta de valor estão definidos: são a base para avaliar canais, receitas e custos.");
+        if (d.secoes.receitas.length === 1) implicacoes.push("Há uma única fonte de receita: o negócio fica mais exposto a variações desse fluxo.");
+        recomendacoes.push(
+          ...emptySecs.map((x) => `Completar o bloco ${x.label}.`),
+          "Conferir se cada custo relevante sustenta algo que o cliente valoriza.",
+          "Usar o Canvas como base para a SWOT e para os objetivos do Balanced Scorecard.",
+        );
+      } else if (tool.kind === "pestel" || tool.kind === "porter") {
+        const rated = secs.filter((x) => x.nota);
+        const avg = rated.length ? rated.reduce((s, x) => s + x.nota, 0) / rated.length : 0;
+        if (!rated.length) implicacoes.push(`Nenhum ${tool.kind === "porter" ? "força" : "fator"} recebeu nota de ${cfg.rating!.label.toLowerCase()}; a priorização fica prejudicada.`);
+        else if (tool.kind === "porter")
+          implicacoes.push(
+            avg >= 3.5
+              ? "A pressão competitiva média é alta: o setor tende a ter margens apertadas, e diferenciação e eficiência passam a ser essenciais."
+              : avg >= 2.5
+                ? "A pressão competitiva média é moderada: há espaço para rentabilidade, desde que a empresa se proteja nas forças mais intensas."
+                : "A pressão competitiva média é baixa: o setor é relativamente atrativo, e o desafio é manter a posição.",
+          );
+        else implicacoes.push(`${plural(strong.length, "fator externo tem", "fatores externos têm")} impacto alto ou muito alto e deve${strong.length === 1 ? "" : "m"} entrar no planejamento.`);
+        if (strong.length) implicacoes.push(`Mais relevantes: ${strong.map((x) => x.label).join(", ")}.`);
+        const tips: Record<string, string> = {
+          rivalidade: "Reforçar a diferenciação e a fidelização para reduzir a disputa por preço.",
+          entrantes: "Fortalecer barreiras: marca, relacionamento, escala, contratos de longo prazo.",
+          substitutos: "Acompanhar as soluções alternativas e destacar o valor exclusivo da oferta.",
+          clientes: "Reduzir a dependência dos maiores clientes e aumentar o custo de troca com serviços agregados.",
+          fornecedores: "Desenvolver fornecedores alternativos e negociar contratos com prazos e preços previsíveis.",
+        };
+        recomendacoes.push(
+          ...strong.slice(0, 4).map((x) => (tool.kind === "porter" ? tips[x.key] ?? `Agir sobre ${x.label}.` : `Levar os itens de ${x.label} para a SWOT como oportunidade ou ameaça e definir resposta.`)),
+          ...(rated.length < secs.length ? [`Dar nota a todos os ${tool.kind === "porter" ? "blocos de força" : "fatores"}.`] : []),
+          ...emptySecs.slice(0, 3).map((x) => `Avaliar o bloco ${x.label}, ainda vazio.`),
+        );
+      } else if (tool.kind === "eisenhower") {
+        const n = (k: string) => d.secoes[k].length;
+        implicacoes.push(
+          n("fazer") > n("agendar")
+            ? "Há mais itens urgentes e importantes do que importantes não urgentes: sinal de rotina apagando incêndios."
+            : "O importante não urgente tem espaço na agenda, o que reduz os incêndios no futuro.",
+        );
+        if (n("delegar") > 0) implicacoes.push(`${plural(n("delegar"), "item pode ser delegado", "itens podem ser delegados")}, liberando tempo para o estratégico.`);
+        recomendacoes.push(
+          ...d.secoes.fazer.slice(0, 3).map((i) => `Resolver agora: "${i.text}"${planNote(i.text)}.`),
+          ...d.secoes.agendar.slice(0, 3).map((i) => `Reservar data na agenda para "${i.text}"${planNote(i.text)}.`),
+          ...(n("delegar") ? ["Definir para quem delegar cada item e o prazo de retorno."] : []),
+          ...(n("eliminar") ? ["Cortar de fato os itens a eliminar e comunicar quem for afetado."] : []),
+        );
+      } else if (tool.kind === "pdca") {
+        const order = ["planejar", "executar", "checar", "agir"];
+        const stage = [...order].reverse().find((k) => d.secoes[k].length);
+        const label = (k: string) => cfg.sections.find((x) => x.key === k)!.label;
+        implicacoes.push(stage ? `O ciclo está na etapa ${label(stage)}.` : "O ciclo ainda não começou.");
+        if (d.secoes.executar.length && !d.secoes.checar.length) implicacoes.push("Houve execução, mas o resultado ainda não foi medido. Sem checar, não se sabe se a melhoria funcionou.");
+        if (!d.secoes.planejar.length) implicacoes.push("Falta o planejamento: meta, causas e plano.");
+        const next = stage ? order[order.indexOf(stage) + 1] : "planejar";
+        recomendacoes.push(
+          next ? `Avançar para a etapa ${label(next)}.` : "Padronizar o que funcionou e, se a meta não foi atingida, iniciar um novo ciclo.",
+          ...d.secoes.agir.slice(0, 3).map((i) => `Garantir a execução de "${i.text}"${planNote(i.text)}.`),
+        );
+      }
+      return { leitura: leituraBase, achados, implicacoes, recomendacoes, vazia: false };
     }
   }
 }
