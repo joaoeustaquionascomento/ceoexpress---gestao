@@ -81,7 +81,19 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-plum">Informações solicitadas</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-plum">Informações solicitadas</h2>
+          {audience === "staff" && (
+            <div className="flex flex-wrap gap-2">
+              <Link href={`${basePath}/modelos`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+                Adicionar dos modelos
+              </Link>
+              <Link href={`${basePath}/pedidos/novo`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
+                Novo pedido
+              </Link>
+            </div>
+          )}
+        </div>
         {requests.length === 0 ? (
           <EmptyState>Nenhuma solicitação cadastrada para este projeto.</EmptyState>
         ) : (

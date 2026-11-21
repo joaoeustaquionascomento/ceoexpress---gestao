@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -38,11 +39,12 @@ export async function createProject(_: AdminState, form: FormData): Promise<Admi
   const parsed = project.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: "Escolha a empresa e informe o nome do projeto." };
   const supabase = await createClient();
-  const { error } = await supabase.from("projects").insert({ ...parsed.data, created_by: user.id });
-  if (error) return { error: "Não foi possível salvar o projeto." };
+  const { data, error } = await supabase.from("projects").insert({ ...parsed.data, created_by: user.id }).select("id").single();
+  if (error || !data) return { error: "Não foi possível salvar o projeto." };
   revalidatePath("/admin/projetos");
   revalidatePath("/admin");
-  return { ok: `Projeto ${parsed.data.name} criado.` };
+  // Próximo passo: escolher os pedidos e as ações da biblioteca de modelos.
+  redirect(`/admin/projetos/${data.id}/modelos?novo=1`);
 }
 
 const invite = z.object({

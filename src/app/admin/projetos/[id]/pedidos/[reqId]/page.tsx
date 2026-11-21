@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RequestDetail } from "@/components/request-detail";
 import { BackLink, PageTitle } from "@/components/ui";
@@ -15,6 +16,11 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
     <>
       <BackLink href={`/admin/projetos/${id}`} label="Voltar ao projeto" />
       <PageTitle eyebrow={`${data.request.code} · ${data.request.category}`} title={data.request.title} />
+      {access.staff && (
+        <Link href={`/admin/projetos/${id}/pedidos/${reqId}/editar`} className="mb-4 inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-mauve hover:bg-tint">
+          Editar ou excluir pedido
+        </Link>
+      )}
       <RequestDetail data={data} access={access} />
     </>
   );

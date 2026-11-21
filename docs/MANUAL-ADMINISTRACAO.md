@@ -1,4 +1,4 @@
-# Manual de administração (fases 0 a 4)
+# Manual de administração (fases 0 a 4 e modelos)
 
 Este manual cobre o que já está disponível. Ele será ampliado a cada fase.
 
@@ -118,3 +118,17 @@ o botão **Baixar CSV**.
 Todo dia às 8h (Brasília), quem tem avisos não lidos recebe um e-mail com a lista. Cada aviso vai uma vez só,
 e clicar nele no e-mail marca como lido. Funciona depois de configurar `RESEND_API_KEY`, `EMAIL_FROM` e
 `CRON_SECRET` na Vercel (ver `docs/IMPLANTACAO.md`). Sem elas, nada é enviado e o sino continua funcionando.
+
+## Biblioteca de modelos, incluir e excluir pedidos e ações
+
+- **Modelos** (menu do admin): pedidos de informação e ações prontos, com as orientações. A carga inicial veio
+  da FIQ Brasil, sem responsáveis nem prazos; revise os textos que citam datas ou pessoas da FIQ. Use
+  "Copiar de um projeto existente" para trazer para a biblioteca o que foi montado em outro projeto.
+- **Novo projeto**: depois de clicar em "Criar projeto", abre a tela de modelos. Marque os pedidos e as ações e
+  clique em "Criar". A mesma tela fica no projeto ("Adicionar dos modelos") e no plano ("Dos modelos"). Itens com
+  o mesmo código já existentes no projeto não são duplicados.
+- **Novo pedido**: na página do projeto, botão "Novo pedido". Para editar ou excluir, abra o pedido e clique em
+  "Editar ou excluir pedido". Pedido com arquivo enviado não pode ser excluído: use "Não aplicável".
+- **Excluir ação**: abra a ação e use "Excluir esta ação". Se outra ação depende dela, tire a dependência primeiro
+  ou marque como "Cancelada", que mantém o registro.
+- Toda exclusão fica registrada na Auditoria.
