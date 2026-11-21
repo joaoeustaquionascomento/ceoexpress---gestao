@@ -7,6 +7,9 @@ do $$ begin
   begin create role anon nologin; exception when duplicate_object or unique_violation then null; end;
   begin create role authenticated nologin; exception when duplicate_object or unique_violation then null; end;
 end $$;
+-- Como no Supabase, pgcrypto fica no esquema "extensions", não em "public".
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 create schema if not exists auth;
 create table if not exists auth.users (id uuid primary key, email text not null unique);
 create or replace function auth.uid() returns uuid language sql stable as $$
