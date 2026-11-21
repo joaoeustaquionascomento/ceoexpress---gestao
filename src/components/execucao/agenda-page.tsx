@@ -89,7 +89,9 @@ export async function AgendaPage({ area, params }: { area: Area; params: Promise
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-plum">Registro de decisões</h2>
           {!staff && <p className="text-sm text-muted">Decisões, lacunas, hipóteses e premissas que a consultoria compartilhou com você.</p>}
-          {decisions.length === 0 && <EmptyState>Nenhum registro.</EmptyState>}
+          {decisions.length === 0 && (
+            <EmptyState>{staff ? "Nenhum registro." : "A consultoria ainda não compartilhou nenhum registro com você."}</EmptyState>
+          )}
           {decisions.map((d) => (
             <div key={d.id} className="rounded-xl border border-line bg-surface p-4 text-sm">
               <p className="text-xs font-semibold text-rose">

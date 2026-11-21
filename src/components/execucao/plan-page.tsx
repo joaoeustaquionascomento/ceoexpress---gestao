@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, BackLink, EmptyState, PageTitle, Stat } from "@/components/ui";
-import { StatusForm } from "@/components/execucao/forms";
+import { QuickEdit, StatusForm } from "@/components/execucao/forms";
 import { getProjectAccess } from "@/lib/access";
 import { ACTION_STATUS, formatDate } from "@/lib/status";
 import {
@@ -10,6 +10,7 @@ import {
   executorName,
   getPlan,
   getProjectHeader,
+  getProjectPeople,
   isOverdue,
   today,
   type Area,
@@ -44,7 +45,14 @@ export async function PlanPage({
   if (!UUID.test(id)) notFound();
   const [header, access] = await Promise.all([getProjectHeader(id), getProjectAccess(id)]);
   if (!header || !access) notFound();
-  const { actions, objectives, deps, meetings, milestones } = await getPlan(id);
+  const [{ actions, objectives, deps, meetings, milestones }, people] = await Promise.all([
+    getPlan(id),
+    access.staff ? getProjectPeople(id) : Promise.resolve([]),
+  ]);
+  const quick = (a: PlanAction) =>
+    access.staff ? (
+      <QuickEdit actionId={a.id} projectId={id} executorId={a.executor_id} dueOn={a.due_on} people={people} />
+    ) : null;
 
   const base = `/${area}/projetos/${id}`;
   const view = sp.visao === "kanban" || sp.visao === "calendario" ? sp.visao : "lista";
@@ -107,6 +115,9 @@ export async function PlanPage({
         <Link href={`${base}/agenda`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Agenda e decisões
         </Link>
+        <a href={`/exportar/${id}/acoes`} download className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+          Baixar CSV
+        </a>
         {access.staff && (
           <Link href={`${base}/acoes/nova`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
             Nova ação
@@ -145,8 +156,8 @@ export async function PlanPage({
         </form>
       )}
 
-      {view === "lista" && <ListView list={list} base={base} waiting={waiting} />}
-      {view === "kanban" && <KanbanView list={list} base={base} projectId={id} staff={access.staff} canUpdate={canUpdate} />}
+      {view === "lista" && <ListView list={list} base={base} waiting={waiting} quick={quick} />}
+      {view === "kanban" && <KanbanView list={list} base={base} projectId={id} staff={access.staff} canUpdate={canUpdate} quick={quick} />}
       {view === "calendario" && (
         <CalendarView month={sp.mes} actions={actions} meetings={meetings} milestones={milestones} base={base} qs={qs} />
       )}
@@ -154,7 +165,9 @@ export async function PlanPage({
   );
 }
 
-function ListView({ list, base, waiting }: { list: PlanAction[]; base: string; waiting: Set<string> }) {
+function ListView({
+  list, base, waiting, quick,
+}: { list: PlanAction[]; base: string; waiting: Set<string>; quick: (a: PlanAction) => React.ReactNode }) {
   if (list.length === 0) return <EmptyState>Nenhuma ação encontrada com esses filtros.</EmptyState>;
   return (
     <>
@@ -168,6 +181,7 @@ function ListView({ list, base, waiting }: { list: PlanAction[]; base: string; w
               <Badge tone={PRIORITY[a.priority]?.tone}>{PRIORITY[a.priority]?.label}</Badge>
               {waiting.has(a.id) && <Badge tone="warn">Aguardando outra ação</Badge>}
             </div>
+            {quick(a)}
           </div>
         ))}
       </div>
@@ -192,6 +206,7 @@ function ListView({ list, base, waiting }: { list: PlanAction[]; base: string; w
                   </Link>
                   {a.visibility === "internal" && <span className="ml-2"><Badge tone="warn">Interna</Badge></span>}
                   {waiting.has(a.id) && <span className="ml-2"><Badge tone="warn">Aguardando outra ação</Badge></span>}
+                  <div className="mt-1 max-w-sm">{quick(a)}</div>
                 </td>
                 <td className="px-3 py-2">{executorName(a)}</td>
                 <td className={`whitespace-nowrap px-3 py-2 ${isOverdue(a) ? "font-semibold text-bad" : ""}`}>{formatDate(a.due_on)}</td>
@@ -207,8 +222,15 @@ function ListView({ list, base, waiting }: { list: PlanAction[]; base: string; w
 }
 
 function KanbanView({
-  list, base, projectId, staff, canUpdate,
-}: { list: PlanAction[]; base: string; projectId: string; staff: boolean; canUpdate: (a: PlanAction) => boolean }) {
+  list, base, projectId, staff, canUpdate, quick,
+}: {
+  list: PlanAction[];
+  base: string;
+  projectId: string;
+  staff: boolean;
+  canUpdate: (a: PlanAction) => boolean;
+  quick: (a: PlanAction) => React.ReactNode;
+}) {
   const columns = ACTION_STATUSES.filter((s) => s !== "cancelada" || list.some((a) => a.status === "cancelada"));
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-2">
@@ -232,6 +254,7 @@ function KanbanView({
                         </div>
                       </details>
                     )}
+                    {quick(a)}
                   </div>
                 ))}
                 {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted">Nada aqui</p>}

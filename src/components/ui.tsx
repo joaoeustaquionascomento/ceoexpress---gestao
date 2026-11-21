@@ -75,3 +75,28 @@ export const inputClass =
 export const labelClass = "block text-sm font-semibold text-ink";
 export const primaryButton =
   "inline-flex min-h-11 items-center justify-center rounded-lg bg-plum px-5 py-2 font-semibold text-white hover:bg-mauve disabled:cursor-wait disabled:opacity-70";
+
+/** Botões de download dos CSVs de um projeto (arquivo abre no Excel). */
+export function ExportLinks({ projectId, only }: { projectId: string; only?: ("pedidos" | "acoes" | "decisoes")[] }) {
+  const all = [
+    { tipo: "pedidos", label: "Pedidos" },
+    { tipo: "acoes", label: "Ações" },
+    { tipo: "decisoes", label: "Decisões" },
+  ] as const;
+  const items = all.filter((i) => !only || only.includes(i.tipo));
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="text-muted">Baixar planilha (CSV):</span>
+      {items.map((i) => (
+        <a
+          key={i.tipo}
+          href={`/exportar/${projectId}/${i.tipo}`}
+          download
+          className="inline-flex min-h-11 items-center rounded-lg border border-line px-3 font-semibold text-mauve hover:bg-tint"
+        >
+          {i.label}
+        </a>
+      ))}
+    </div>
+  );
+}

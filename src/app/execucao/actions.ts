@@ -308,3 +308,31 @@ export async function saveDecision(_: FormResult, form: FormData): Promise<FormR
   refreshProject(ctx.projectId);
   return { ok: id ? "Registro atualizado." : "Registro criado." };
 }
+
+/** Edição rápida (lista e Kanban): só quem executa e prazo. */
+export async function quickUpdateAction(_: FormResult, form: FormData): Promise<FormResult> {
+  const actionId = uuid.safeParse(form.get("actionId"));
+  const projectId = uuid.safeParse(form.get("projectId"));
+  if (!actionId.success || !projectId.success) return { error: "Ação inválida." };
+  const access = await getProjectAccess(projectId.data);
+  if (!access?.staff) return { error: "Só a consultoria edita o plano de ação." };
+  const executor = optUuid.parse(form.get("executor_id") || null);
+  const due = optDate.parse(form.get("due_on") || null);
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("action_items")
+    .select("starts_on")
+    .eq("id", actionId.data)
+    .eq("project_id", projectId.data)
+    .maybeSingle();
+  if (!current) return { error: "Ação não encontrada." };
+  if (due && current.starts_on && due < current.starts_on) return { error: "O prazo não pode ser antes do início." };
+  const { error } = await supabase
+    .from("action_items")
+    .update({ executor_id: executor, due_on: due })
+    .eq("id", actionId.data)
+    .eq("project_id", projectId.data);
+  if (error) return { error: dbMessage(error.message, "Não foi possível salvar.") };
+  refreshProject(projectId.data);
+  return { ok: "Salvo." };
+}

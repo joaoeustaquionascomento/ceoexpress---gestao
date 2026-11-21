@@ -1,4 +1,4 @@
-# Manual de administração (fases 0, 2 e 3)
+# Manual de administração (fases 0 a 4)
 
 Este manual cobre o que já está disponível. Ele será ampliado a cada fase.
 
@@ -94,3 +94,27 @@ outra parte. Ações e mensagens marcadas como internas não aparecem para o cli
 Em **Agenda e decisões**, a consultoria agenda encontros, registra a ata e marca o encontro como realizado,
 cadastra marcos (previsto e atingido) e mantém o registro de decisões, lacunas, hipóteses e premissas. Novos
 registros de decisão nascem internos; desmarque "Interno" para compartilhar com o cliente.
+
+## Painel, fila e auditoria (fase 4)
+
+- **Carteira** (início do admin) e **Início** do consultor mostram o painel: documentos recebidos e aprovados,
+  pedidos vencidos, ações concluídas, atrasadas e bloqueadas, por projeto, com filtros de cliente e projeto,
+  e os encontros e marcos dos próximos 30 dias.
+- **Fila de análise** lista os pedidos enviados pelo cliente, do mais antigo para o mais novo. Os parados há
+  3 dias ou mais aparecem com o aviso "Há N dias".
+- **Auditoria** (só admin) mostra quem criou, alterou ou excluiu cada registro, com filtros de empresa, tipo,
+  ação e período. Clique em "Ver dados completos" para ver antes e depois.
+- **Edição rápida**: na lista e no Kanban do plano, o botão "Alterar executor e prazo" muda só esses dois campos,
+  sem abrir a ação.
+
+## Exportar planilhas
+
+Na página do projeto, **Baixar planilha (CSV)** gera os arquivos de pedidos, ações e decisões, que abrem direto
+no Excel. Cada pessoa só recebe o que pode ver: o cliente não recebe itens internos. No plano de ação há também
+o botão **Baixar CSV**.
+
+## Resumo diário de avisos por e-mail
+
+Todo dia às 8h (Brasília), quem tem avisos não lidos recebe um e-mail com a lista. Cada aviso vai uma vez só,
+e clicar nele no e-mail marca como lido. Funciona depois de configurar `RESEND_API_KEY`, `EMAIL_FROM` e
+`CRON_SECRET` na Vercel (ver `docs/IMPLANTACAO.md`). Sem elas, nada é enviado e o sino continua funcionando.

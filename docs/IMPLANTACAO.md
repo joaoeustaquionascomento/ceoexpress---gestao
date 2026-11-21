@@ -58,6 +58,11 @@ from auth.users where email = 'direcao@exemplo.com.br';
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | chave anon |
 | `SUPABASE_SERVICE_ROLE_KEY` | chave service_role (marque como *Sensitive*) |
 | `NEXT_PUBLIC_SITE_URL` | endereço público do app |
+| `RESEND_API_KEY` | (opcional) chave da Resend para o resumo diário de avisos (*Sensitive*) |
+| `EMAIL_FROM` | (opcional) remetente, ex.: `CEOEXPRESS <nao-responda@ceoexpress.com.br>` (domínio verificado na Resend) |
+| `CRON_SECRET` | (opcional) texto longo e aleatório; a Vercel o envia ao chamar `/api/cron/avisos` (*Sensitive*) |
+
+O agendamento diário (8h de Brasília) está em `vercel.json`. Sem as três variáveis opcionais, nada é enviado.
 
 3. Faça o deploy e configure o domínio próprio em **Settings > Domains**. O HTTPS é automático.
 

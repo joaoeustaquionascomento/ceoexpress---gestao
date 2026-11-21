@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import {
   addActionComment,
   changeActionStatus,
+  quickUpdateAction,
   saveAction,
   saveDecision,
   saveMeeting,
@@ -364,5 +365,35 @@ export function DecisionForm({
       </label>
       <SubmitButton pendingText="Salvando…">{decision ? "Salvar registro" : "Criar registro"}</SubmitButton>
     </form>
+  );
+}
+
+export function QuickEdit({
+  actionId, projectId, executorId, dueOn, people,
+}: {
+  actionId: string;
+  projectId: string;
+  executorId: string | null;
+  dueOn: string | null;
+  people: { id: string; name: string }[];
+}) {
+  const [state, action] = useActionState(quickUpdateAction, undefined);
+  return (
+    <details className="rounded-lg bg-surface px-3 text-sm" open={!!state?.error}>
+      <summary className="min-h-10 cursor-pointer py-2 font-semibold text-mauve">Alterar executor e prazo</summary>
+      <form action={action} className="space-y-2 pb-3">
+        <Feedback state={state} />
+        <input type="hidden" name="actionId" value={actionId} />
+        <input type="hidden" name="projectId" value={projectId} />
+        <label htmlFor={`qe-${actionId}-ex`} className={labelClass}>Quem executa</label>
+        <select id={`qe-${actionId}-ex`} name="executor_id" defaultValue={executorId ?? ""} className={inputClass}>
+          <option value="">Ninguém definido</option>
+          {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <label htmlFor={`qe-${actionId}-due`} className={labelClass}>Prazo</label>
+        <input id={`qe-${actionId}-due`} name="due_on" type="date" defaultValue={dueOn ?? ""} className={inputClass} />
+        <SubmitButton pendingText="Salvando…">Salvar</SubmitButton>
+      </form>
+    </details>
   );
 }
