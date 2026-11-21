@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { PublicShell } from "@/components/app-shell";
+import { PublicShell } from "@/components/public-shell";
 import { Alert, inputClass, labelClass } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { updatePassword } from "./actions";

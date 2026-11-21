@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge, Card, EmptyState, Stat } from "@/components/ui";
 import { ACTION_STATUS, REQUEST_STATUS, formatDate, progress } from "@/lib/status";
 import type { getProject, RequestRow } from "@/lib/queries";
@@ -6,7 +7,7 @@ const DECISION_KIND: Record<string, string> = { decisao: "Decisão", lacuna: "La
 
 type Data = NonNullable<Awaited<ReturnType<typeof getProject>>>;
 
-function RequestCard({ r }: { r: RequestRow }) {
+function RequestCard({ r, href }: { r: RequestRow; href: string }) {
   const st = REQUEST_STATUS[r.status];
   return (
     <details className="group rounded-xl border border-line bg-surface open:shadow-sm">
@@ -49,15 +50,18 @@ function RequestCard({ r }: { r: RequestRow }) {
             <p className="mt-1 whitespace-pre-line text-muted">{r.instructions}</p>
           </div>
         )}
-        <p className="rounded-lg bg-tint px-3 py-2 text-xs text-plum">
-          O envio de arquivos por esta tela entra na próxima etapa de desenvolvimento.
-        </p>
+        <Link
+          href={href}
+          className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 font-semibold text-white hover:bg-mauve"
+        >
+          Abrir pedido: arquivos, análise e mensagens
+        </Link>
       </div>
     </details>
   );
 }
 
-export function ProjectView({ data, audience }: { data: Data; audience: "staff" | "client" }) {
+export function ProjectView({ data, audience, basePath }: { data: Data; audience: "staff" | "client"; basePath: string }) {
   const { requests, objectives, actions, meetings, decisions } = data;
   const p = progress(requests.map((r) => r.status));
   const today = new Date().toISOString().slice(0, 10);
@@ -85,7 +89,7 @@ export function ProjectView({ data, audience }: { data: Data; audience: "staff" 
               <div key={cat}>
                 <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">{cat}</h3>
                 <div className="space-y-2">
-                  {requests.filter((r) => r.category === cat).map((r) => <RequestCard key={r.id} r={r} />)}
+                  {requests.filter((r) => r.category === cat).map((r) => <RequestCard key={r.id} r={r} href={`${basePath}/pedidos/${r.id}`} />)}
                 </div>
               </div>
             ))}

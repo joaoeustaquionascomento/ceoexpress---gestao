@@ -7,6 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AppShell
       area="Área administrativa"
       user={user}
+      notificationsHref="/admin/notificacoes"
       nav={[
         { href: "/admin", label: "Carteira" },
         { href: "/admin/empresas", label: "Empresas" },
