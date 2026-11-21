@@ -5,7 +5,7 @@ Primeiro cliente e projeto: **FIQ Brasil — Planejamento e execução 2026–20
 
 > Inteligência estratégica, execução e resultados em uma única plataforma.
 
-## Estado atual (fases 0 e 2)
+## Estado atual (fases 0, 2 e 3)
 
 | Parte | Situação |
 | --- | --- |
@@ -15,6 +15,7 @@ Primeiro cliente e projeto: **FIQ Brasil — Planejamento e execução 2026–20
 | Área administrativa: carteira, empresas, projetos, convites | Código pronto; idem |
 | Área dos consultores e Área do Cliente: projetos, pedidos com orientações, plano de ação, agenda | Código pronto; idem |
 | Envio e substituição de arquivos com histórico de versões, análise da consultoria (aprovar, pedir complementação, não aplicável), atribuição, mensagens e avisos | Código pronto e regras testadas em PostgreSQL (`tests/db/documentos.test.ts`); **ainda não executado contra um Supabase real** |
+| Plano de ação com as 7 perguntas, dependências, histórico de status, visões lista, Kanban e calendário; agenda, marcos e registro de decisões | Código pronto e regras testadas em PostgreSQL (`tests/db/execucao.test.ts`); **ainda não executado contra um Supabase real** |
 
 ## Tecnologia
 
