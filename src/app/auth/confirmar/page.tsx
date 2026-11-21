@@ -3,6 +3,7 @@ import { PublicShell } from "@/components/public-shell";
 import { Alert } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { confirmRecovery } from "./actions";
+import { HashSession } from "./hash-session";
 
 export const metadata: Metadata = { title: "Redefinir senha" };
 
@@ -19,9 +20,11 @@ export default async function ConfirmarPage({ searchParams }: { searchParams: Pr
           <SubmitButton pendingText="Conferindo…">Continuar</SubmitButton>
         </form>
       ) : (
-        <div className="mt-4">
-          <Alert tone="bad">Este link não é válido. Peça um novo em “Esqueci minha senha”.</Alert>
-        </div>
+        <HashSession>
+          <div className="mt-4">
+            <Alert tone="bad">Este link não é válido ou já foi usado. Peça um novo em “Esqueci minha senha”.</Alert>
+          </div>
+        </HashSession>
       )}
     </PublicShell>
   );

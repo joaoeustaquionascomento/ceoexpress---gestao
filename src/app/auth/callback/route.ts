@@ -11,5 +11,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(new URL(next, request.url));
   }
+  // Sem "code": o link veio no formato implicit, com a sessão depois do "#".
+  // O navegador mantém esse trecho no redirecionamento, e a página de
+  // confirmação o lê no próprio navegador.
+  if (!code && !request.nextUrl.searchParams.get("error")) {
+    return NextResponse.redirect(new URL("/auth/confirmar", request.url));
+  }
   return NextResponse.redirect(new URL("/entrar?erro=link", request.url));
 }
