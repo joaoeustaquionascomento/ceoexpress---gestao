@@ -132,9 +132,14 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-plum">Plano de ação</h2>
-          <Link href={`${basePath}/plano`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
-            Abrir plano: lista, Kanban e calendário
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`${basePath}/ferramentas`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+              Ferramentas de gestão
+            </Link>
+            <Link href={`${basePath}/plano`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
+              Abrir plano: lista, Kanban e calendário
+            </Link>
+          </div>
         </div>
         {actions.length === 0 ? (
           <EmptyState>Nenhuma ação cadastrada.</EmptyState>
