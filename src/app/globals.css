@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Identidade CEOEXPRESS: cores da logomarca e do portal original. */
+:root {
+  --plum: #574345;      /* primária escura */
+  --mauve: #70585c;     /* primária */
+  --rose: #896c70;      /* secundária */
+  --soft-rose: #a28f91; /* suave */
+  --ink: #322c2d;
+  --muted: #746b6d;
+  --line: #e6e0df;
+  --surface: #ffffff;
+  --canvas: #f7f6f5;
+  --tint: #f2eeed;
+  --ok: #2f6b4f;
+  --ok-bg: #e7f2ec;
+  --warn: #8a5a12;
+  --warn-bg: #fbf1de;
+  --bad: #9b2c2c;
+  --bad-bg: #fbe9e9;
+}
+
+@theme inline {
+  --color-plum: var(--plum);
+  --color-mauve: var(--mauve);
+  --color-rose: var(--rose);
+  --color-soft-rose: var(--soft-rose);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-tint: var(--tint);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+  --font-sans: Calibri, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+:focus-visible {
+  outline: 2px solid var(--mauve);
+  outline-offset: 2px;
+}
