@@ -121,9 +121,10 @@ e clicar nele no e-mail marca como lido. Funciona depois de configurar `RESEND_A
 
 ## Biblioteca de modelos, incluir e excluir pedidos e ações
 
-- **Modelos** (menu do admin): pedidos de informação e ações prontos, com as orientações. A carga inicial veio
-  da FIQ Brasil, sem responsáveis nem prazos; revise os textos que citam datas ou pessoas da FIQ. Use
-  "Copiar de um projeto existente" para trazer para a biblioteca o que foi montado em outro projeto.
+- **Modelos** (menu do admin): pedidos de informação e ações prontos, com as orientações, escritos de forma genérica
+  (sem nomes, pessoas ou datas de um cliente) para servir a qualquer projeto. O conteúdo-base fica em
+  `data/modelos/biblioteca.json`. Use "Copiar de um projeto existente" para trazer para a biblioteca o que foi montado
+  em outro projeto; códigos já existentes não são sobrescritos.
 - **Novo projeto**: depois de clicar em "Criar projeto", abre a tela de modelos. Marque os pedidos e as ações e
   clique em "Criar". A mesma tela fica no projeto ("Adicionar dos modelos") e no plano ("Dos modelos"). Itens com
   o mesmo código já existentes no projeto não são duplicados.

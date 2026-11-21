@@ -158,7 +158,7 @@ export function ActionForm({
               {people.map((p) => <option key={p.id} value={p.id}>{p.name} ({roleLabel[p.role] ?? p.role})</option>)}
             </select>
           </Field>
-          <Field label="Executor por extenso" name="owner_label" hint="Ex.: Financeiro FIQ, enquanto a pessoa não tem acesso.">
+          <Field label="Executor por extenso" name="owner_label" hint="Ex.: Equipe financeira, enquanto a pessoa não tem acesso.">
             <input id="owner_label" name="owner_label" defaultValue={v("owner_label")} className={inputClass} maxLength={200} />
           </Field>
         </div>
