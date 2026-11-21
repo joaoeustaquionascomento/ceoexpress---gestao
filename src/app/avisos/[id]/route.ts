@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getSessionUser();
-  if (!user) return NextResponse.redirect(new URL("/entrar", request.url));
+  if (!user) return NextResponse.redirect(new URL(`/entrar?next=${encodeURIComponent(`/avisos/${id}`)}`, request.url));
   let target = homeFor(user.role);
   if (/^[0-9a-f-]{36}$/.test(id)) {
     const supabase = await createClient();

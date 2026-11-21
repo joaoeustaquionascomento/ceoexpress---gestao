@@ -5,7 +5,7 @@ export default async function ConsultorLayout({ children }: { children: React.Re
   const user = await requireRole("consultant", "admin");
   return (
     <AppShell area="Área dos consultores" user={user}
-      notificationsHref="/consultor/notificacoes" nav={[{ href: "/consultor", label: "Meus projetos" }]}>
+      notificationsHref="/consultor/notificacoes" nav={[{ href: "/consultor", label: "Meus projetos" }, { href: "/consultor/fila", label: "Fila de análise" }]}>
       {children}
     </AppShell>
   );

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, Card, EmptyState, Stat } from "@/components/ui";
+import { Badge, Card, EmptyState, ExportLinks, Stat } from "@/components/ui";
 import { ACTION_STATUS, REQUEST_STATUS, formatDate, progress } from "@/lib/status";
 import type { getProject, RequestRow } from "@/lib/queries";
 
@@ -72,6 +72,7 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
 
   return (
     <div className="space-y-8">
+      <ExportLinks projectId={basePath.split("/").pop() ?? ""} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Documentos recebidos" value={`${p.receivedPct}%`} hint={`${p.received} de ${p.total} pedidos`} />
         <Stat label="Documentos aprovados" value={`${p.approvedPct}%`} hint={`${p.approved} de ${p.total} pedidos`} />
