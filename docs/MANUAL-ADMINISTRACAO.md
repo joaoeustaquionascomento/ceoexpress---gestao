@@ -1,4 +1,4 @@
-# Manual de administração (fases 0 e 2)
+# Manual de administração (fases 0, 2 e 3)
 
 Este manual cobre o que já está disponível. Ele será ampliado a cada fase.
 
@@ -63,3 +63,34 @@ cada pedido pode ser atribuído a um usuário na tela do pedido.
 
 O sino **Avisos**, no topo, mostra documentos recebidos, análises e novas mensagens. O envio desses avisos por
 e-mail entra numa fase seguinte.
+
+## Plano de ação (fase 3)
+
+No projeto, clique em **Abrir plano: lista, Kanban e calendário**.
+
+- **Lista**: todas as ações, com filtros por status, prioridade estratégica, "só as minhas" e "só atrasadas".
+- **Kanban**: uma coluna por status. Em cada cartão, **Mover** muda o status.
+- **Calendário**: prazos das ações, encontros e marcos do mês.
+
+**Nova ação** (só a consultoria) pede as 7 perguntas: o que, por que, quem executa, quem decide, quais
+informações são necessárias, quando deve ser concluído e como será comprovado. Também dá para marcar de quais
+ações ela depende. O executor escolhido recebe um aviso.
+
+Quem pode mudar o status:
+
+| Perfil | Pode |
+| --- | --- |
+| Consultoria | Qualquer status, inclusive cancelar e reabrir |
+| Gestor do cliente | Ações visíveis ao cliente, sem cancelar |
+| Colaborador do cliente | Só as ações em que é o executor, sem cancelar |
+| Leitor do cliente | Apenas consulta |
+
+Uma ação só pode ser concluída depois das ações de que depende. Ao marcar **Bloqueada**, a observação é
+obrigatória. Toda mudança de status fica no **Histórico** da ação, com autor, data e observação, e avisa a
+outra parte. Ações e mensagens marcadas como internas não aparecem para o cliente.
+
+## Agenda e decisões (fase 3)
+
+Em **Agenda e decisões**, a consultoria agenda encontros, registra a ata e marca o encontro como realizado,
+cadastra marcos (previsto e atingido) e mantém o registro de decisões, lacunas, hipóteses e premissas. Novos
+registros de decisão nascem internos; desmarque "Interno" para compartilhar com o cliente.

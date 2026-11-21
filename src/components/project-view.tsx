@@ -117,7 +117,12 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
       )}
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-plum">Plano de ação</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-plum">Plano de ação</h2>
+          <Link href={`${basePath}/plano`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
+            Abrir plano: lista, Kanban e calendário
+          </Link>
+        </div>
         {actions.length === 0 ? (
           <EmptyState>Nenhuma ação cadastrada.</EmptyState>
         ) : (
@@ -136,7 +141,7 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
                 {actions.map((a) => (
                   <tr key={a.id} className="border-t border-line align-top">
                     <td className="px-3 py-2">
-                      <p className="font-semibold">{a.code} · {a.title}</p>
+                      <Link href={`${basePath}/acoes/${a.id}`} className="font-semibold text-ink hover:text-mauve">{a.code} · {a.title}</Link>
                       {a.rationale && <p className="text-muted">{a.rationale}</p>}
                       {a.completion_criteria && <p className="mt-1 text-xs text-muted">Critério: {a.completion_criteria}</p>}
                     </td>
@@ -154,7 +159,10 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-plum">Agenda</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-plum">Agenda</h2>
+            <Link href={`${basePath}/agenda`} className="text-sm font-semibold text-mauve hover:text-plum">Agenda e decisões →</Link>
+          </div>
           {meetings.length === 0 ? <EmptyState>Nenhum encontro agendado.</EmptyState> : (
             <ol className="space-y-2">
               {meetings.map((m) => (

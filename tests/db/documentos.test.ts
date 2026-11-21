@@ -138,8 +138,11 @@ describe.skipIf(!ADMIN_URL)("banco: fluxo de documentos (fase 2)", () => {
       [p.A, c.A, req.A1, u.consultor],
     );
     await t.as(u.consultor, "update info_requests set status = 'complementacao_solicitada' where id = $1", [req.A1]);
-    const nColab = await t.as<{ kind: string }>(u.colabA, "select kind from notifications order by created_at");
-    expect(nColab.map((n) => n.kind).sort()).toEqual(["comentario", "status_pedido"]);
+    // Mensagem e mudança de status viram um único aviso.
+    const nColab = await t.as<{ kind: string; title: string }>(u.colabA, "select kind, title from notifications");
+    expect(nColab).toHaveLength(1);
+    expect(nColab[0].kind).toBe("status_pedido");
+    expect(nColab[0].title).toContain("com mensagem da consultoria");
     const nGestor = await t.as<{ kind: string }>(u.gestorA, "select kind from notifications");
     expect(nGestor.map((n) => n.kind)).toContain("status_pedido");
     expect(await t.as(u.colabA2, "select id from notifications")).toHaveLength(0);
