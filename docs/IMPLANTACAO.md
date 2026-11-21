@@ -19,8 +19,19 @@ Faça primeiro em um ambiente de **homologação** e só depois repita em produ�
 6. Em **Authentication > URL Configuration**:
    - *Site URL*: o endereço do app (ex.: `https://app.ceoexpress.com.br`);
    - *Redirect URLs*: `https://app.ceoexpress.com.br/auth/callback`.
-7. Em **Authentication > Emails**, traduza o modelo *Reset password* para português e configure um
-   SMTP próprio (ex.: Resend) com o remetente da CEOEXPRESS. O SMTP padrão do Supabase tem limite baixo de envios.
+7. Em **Authentication > Emails**, no modelo *Reset password*, troque o link do e-mail por este (o link
+   abre uma página com o botão **Continuar**, funciona em qualquer navegador e não é gasto por robôs de
+   segurança do e-mail):
+
+   ```html
+   <h2>Redefinir senha</h2>
+   <p>Recebemos um pedido para redefinir a sua senha da CEOEXPRESS.</p>
+   <p><a href="{{ .SiteURL }}/auth/confirmar?token_hash={{ .TokenHash }}&type=recovery">Redefinir minha senha</a></p>
+   <p>Se não foi você, ignore este e-mail.</p>
+   ```
+
+   Configure também um SMTP próprio (ex.: Resend) com o remetente da CEOEXPRESS. O SMTP padrão do Supabase
+   tem limite baixo de envios.
 
 ### Primeiro administrador
 
