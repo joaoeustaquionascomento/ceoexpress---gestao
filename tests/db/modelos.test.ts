@@ -32,12 +32,16 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
 
   afterAll(async () => t?.cleanup());
 
-  it("admin importa a FIQ para a biblioteca, sem responsáveis nem prazos", async () => {
+  it("importar um projeto só acrescenta códigos que faltam na biblioteca", async () => {
     const [r] = await t.as<{ requests: number; actions: number }>(u.admin, "select * from import_templates_from_project($1)", [FIQ]);
-    expect(r.requests).toBe(16);
-    expect(r.actions).toBeGreaterThan(10);
+    // A biblioteca genérica já tem os mesmos códigos: a importação não sobrescreve.
+    expect(r.requests).toBe(0);
+    expect(r.actions).toBe(0);
+    const t1 = await t.db.query("select title from request_templates where code = 'D01'");
+    expect(t1.rows[0].title).not.toMatch(/FIQ/);
+    await t.db.query("delete from request_templates where code = 'D16'");
     const again = await t.as<{ requests: number }>(u.admin, "select * from import_templates_from_project($1)", [FIQ]);
-    expect(again[0].requests).toBe(0);
+    expect(again[0].requests).toBe(1);
     const cols = await t.db.query("select column_name from information_schema.columns where table_name = 'request_templates'");
     expect(cols.rows.map((x) => x.column_name)).not.toContain("owner_label");
   });
@@ -91,5 +95,27 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     await t.db.query("delete from projects where id = $1", [p]);
     const n = await t.db.query("select count(*)::int n from info_requests where project_id = $1", [p]);
     expect(n.rows[0].n).toBe(0);
+  });
+});
+
+describe.skipIf(!ADMIN_URL)("banco: biblioteca genérica", () => {
+  it("os modelos não citam cliente, pessoas nem datas específicas", async () => {
+    const t = await createTestDb("ceo_modgen");
+    try {
+      const r = await t.db.query("select count(*)::int n from request_templates");
+      const a = await t.db.query("select count(*)::int n from action_templates");
+      expect(r.rows[0].n).toBe(16);
+      expect(a.rows[0].n).toBe(30);
+      const bad = await t.db.query(
+        `select code from (
+           select code, concat_ws(' ', title, description, purpose, minimum_content, instructions, checklist::text) txt from request_templates
+           union all
+           select code, concat_ws(' ', title, rationale, area, how, decision_inputs, completion_criteria, basis) from action_templates
+         ) x where txt ~* '(\\mFIQ\\M|izaque|jo[aã]o|ceo ?express|20[0-9]{2}|[0-9]{1,2}/[0-9]{1,2}|cl\\. )'`,
+      );
+      expect(bad.rows).toEqual([]);
+    } finally {
+      await t.cleanup();
+    }
   });
 });
