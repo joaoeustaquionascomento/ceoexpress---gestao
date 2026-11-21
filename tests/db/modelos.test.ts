@@ -19,6 +19,7 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
   beforeAll(async () => {
     t = await createTestDb("ceo_modelos");
     await t.db.query(readFileSync(join(ROOT, "supabase/seed/fiq-brasil.sql"), "utf8"));
+    await t.renameCodes();
     await t.addUser(u.admin, "admin@ceo.test", "Admin", "admin");
     await t.addUser(u.consultor, "consultor@ceo.test", "Consultora", "consultant");
     await t.addUser(u.gestor, "gestor@a.test", "Gestor", "client");
@@ -37,9 +38,9 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     // A biblioteca genérica já tem os mesmos códigos: a importação não sobrescreve.
     expect(r.requests).toBe(0);
     expect(r.actions).toBe(0);
-    const t1 = await t.db.query("select title from request_templates where code = 'D01'");
+    const t1 = await t.db.query("select title from request_templates where code = 'PI-01'");
     expect(t1.rows[0].title).not.toMatch(/FIQ/);
-    await t.db.query("delete from request_templates where code = 'D16'");
+    await t.db.query("delete from request_templates where code = 'PI-16'");
     const again = await t.as<{ requests: number }>(u.admin, "select * from import_templates_from_project($1)", [FIQ]);
     expect(again[0].requests).toBe(1);
     const cols = await t.db.query("select column_name from information_schema.columns where table_name = 'request_templates'");
@@ -59,11 +60,11 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     await t.as(
       u.consultor,
       `insert into info_requests (project_id, company_id, code, title, category, checklist, accepted_formats)
-       select $1, $2, code, title, category, checklist, accepted_formats from request_templates where code in ('D01','D02')`,
+       select $1, $2, code, title, category, checklist, accepted_formats from request_templates where code in ('PI-01','PI-02')`,
       [p, c],
     );
     const reqs = await t.as<{ id: string; code: string }>(u.gestor, "select id, code from info_requests where project_id = $1 order by code", [p]);
-    expect(reqs.map((r) => r.code)).toEqual(["D01", "D02"]);
+    expect(reqs.map((r) => r.code)).toEqual(["PI-01", "PI-02"]);
 
     await t.as(u.consultor, "insert into comments (target_type, target_id, project_id, company_id, body, author_id) values ('info_request',$1,$2,$3,'oi',$4)", [reqs[1].id, p, c, u.consultor]);
     await expect(t.as(u.gestor, "delete from info_requests where id = $1 returning id", [reqs[1].id])).resolves.toHaveLength(0);
@@ -73,7 +74,7 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
   });
 
   it("não exclui pedido com arquivo enviado", async () => {
-    const [r] = await t.as<{ id: string }>(u.gestor, "select id from info_requests where project_id = $1 and code = 'D01'", [p]);
+    const [r] = await t.as<{ id: string }>(u.gestor, "select id from info_requests where project_id = $1 and code = 'PI-01'", [p]);
     await t.db.query(
       "insert into documents (project_id, company_id, info_request_id, title) values ($1,$2,$3,'Contrato')",
       [p, c, r.id],
@@ -106,6 +107,10 @@ describe.skipIf(!ADMIN_URL)("banco: biblioteca genérica", () => {
       const a = await t.db.query("select count(*)::int n from action_templates");
       expect(r.rows[0].n).toBe(16);
       expect(a.rows[0].n).toBe(30);
+      const codes = await t.db.query(
+        "select code from request_templates where code !~ '^PI-[0-9]{2}$' union all select code from action_templates where code !~ '^AP-[0-9]{2}$'",
+      );
+      expect(codes.rows).toEqual([]);
       const bad = await t.db.query(
         `select code from (
            select code, concat_ws(' ', title, description, purpose, minimum_content, instructions, checklist::text) txt from request_templates

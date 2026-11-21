@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getProjectAccess } from "@/lib/access";
 import { requireRole } from "@/lib/auth";
 import { parseChecklist, parseFormats } from "@/lib/checklist";
+import { nextCode } from "@/lib/codigos";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -39,7 +40,7 @@ async function staffContext(form: FormData) {
 
 /** Campos comuns a pedido e modelo de pedido. */
 const requestFields = z.object({
-  code: z.string().trim().min(1, "Informe o código (ex.: D17).").max(20),
+  code: z.string().trim().max(20),
   title: z.string().trim().min(3, "Informe o título do pedido.").max(300),
   category: z.string().trim().max(120).transform((v) => v || "Outros"),
   stage: optText(60),
@@ -84,6 +85,7 @@ export async function saveRequest(_: FormResult, form: FormData): Promise<FormRe
   };
 
   let id = requestId.success ? requestId.data : null;
+  if (id && !parsed.data.code) return { error: "Informe o código (ex.: PI-17)." };
   if (id) {
     const { error } = await ctx.supabase
       .from("info_requests")
@@ -99,6 +101,10 @@ export async function saveRequest(_: FormResult, form: FormData): Promise<FormRe
       .order("sort_order", { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (!parsed.data.code) {
+      const { data: codes } = await ctx.supabase.from("info_requests").select("code").eq("project_id", ctx.projectId);
+      parsed.data.code = nextCode("PI", (codes ?? []).map((r) => r.code));
+    }
     const { data, error } = await ctx.supabase
       .from("info_requests")
       .insert({ ...parsed.data, ...extra, project_id: ctx.projectId, sort_order: (last?.sort_order ?? -1) + 1, created_by: ctx.access.userId })
@@ -233,6 +239,7 @@ export async function saveRequestTemplate(_: FormResult, form: FormData): Promis
   await requireRole("admin");
   const parsed = fieldsFrom(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
+  if (!parsed.data.code) return { error: "Informe o código (ex.: PI-17)." };
   const id = uuid.safeParse(form.get("templateId"));
   const row = { ...parsed.data, active: form.get("active") !== "off" };
   const supabase = await createClient();
@@ -245,7 +252,7 @@ export async function saveRequestTemplate(_: FormResult, form: FormData): Promis
 }
 
 const actionTemplate = z.object({
-  code: z.string().trim().min(1, "Informe o código (ex.: A40).").max(20),
+  code: z.string().trim().min(1, "Informe o código (ex.: AP-40).").max(20),
   kind: z.enum(["tarefa", "pendencia", "acao_5w2h"]).catch("acao_5w2h"),
   title: z.string().trim().min(3, "Diga o que precisa ser realizado.").max(300),
   rationale: optText(4000),

@@ -60,6 +60,7 @@ from auth.users where email = 'direcao@exemplo.com.br';
 | `NEXT_PUBLIC_SITE_URL` | endereço público do app |
 | `RESEND_API_KEY` | (opcional) chave da Resend para o resumo diário de avisos (*Sensitive*) |
 | `EMAIL_FROM` | (opcional) remetente, ex.: `CEOEXPRESS <nao-responda@ceoexpress.com.br>` (domínio verificado na Resend) |
+| `ANTHROPIC_API_KEY` | (opcional) liga o botão "Analisar com IA" nos relatórios; sem ela, só o relatório automático por regras (*Sensitive*) |
 | `CRON_SECRET` | (opcional) texto longo e aleatório; a Vercel o envia ao chamar `/api/cron/avisos` (*Sensitive*) |
 
 O agendamento diário (8h de Brasília) está em `vercel.json`. Sem as três variáveis opcionais, nada é enviado.

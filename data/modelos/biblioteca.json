@@ -1,7 +1,7 @@
 {
   "pedidos": [
     {
-      "code": "D01", "title": "Contrato de consultoria e documentos cadastrais", "category": "Institucional e contrato", "stage": "01_DOCUMENTOS_INSTITUCIONAIS",
+      "code": "PI-01", "title": "Contrato de consultoria e documentos cadastrais", "category": "Institucional e contrato", "stage": "01_DOCUMENTOS_INSTITUCIONAIS",
       "description": "Contrato de consultoria assinado, anexos e dados cadastrais da empresa contratante.",
       "purpose": "Confirma escopo, vigência e dados da contratante, e evita divergências entre proposta e contrato.",
       "minimum_content": "Documento integral assinado, anexos identificados, data de início e CNPJ conferidos.",
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "code": "D02", "title": "Saldos bancários e extratos", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-02", "title": "Saldos bancários e extratos", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Saldo de cada conta na data de início do trabalho e extratos recentes.",
       "purpose": "Define o saldo inicial de caixa usado nas projeções.",
       "minimum_content": "Separar disponível, bloqueado, limite de crédito e pendências de conciliação.",
@@ -23,7 +23,7 @@
       ]
     },
     {
-      "code": "D03", "title": "Contas a pagar e obrigações vencidas", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-03", "title": "Contas a pagar e obrigações vencidas", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Obrigações das próximas 13 semanas e títulos em atraso.",
       "purpose": "Identifica compromissos e riscos imediatos de caixa.",
       "minimum_content": "Credor, documento, vencimento, valor em aberto, centro de custo ou projeto e criticidade.",
@@ -33,7 +33,7 @@
       ]
     },
     {
-      "code": "D04", "title": "Contas a receber e adiantamentos", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-04", "title": "Contas a receber e adiantamentos", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Títulos em aberto e recebimentos previstos.",
       "purpose": "Evita tratar uma proposta ou estimativa como entrada confirmada.",
       "minimum_content": "Cliente, documento, valor, data prevista, grau de confirmação e projeto.",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "code": "D05", "title": "Dívidas, parcelamentos e garantias", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-05", "title": "Dívidas, parcelamentos e garantias", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Posição atual de empréstimos, financiamentos e parcelamentos.",
       "purpose": "Mostra o peso do serviço da dívida e as restrições de garantias.",
       "minimum_content": "Credor, saldo devedor, parcelas, juros, principal e garantias.",
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "code": "D06", "title": "Carteira de contratos, projetos ou pedidos em execução", "category": "Operacional", "stage": "04_OPERACIONAL",
+      "code": "PI-06", "title": "Carteira de contratos, projetos ou pedidos em execução", "category": "Operacional", "stage": "04_OPERACIONAL",
       "description": "Trabalhos contratados em andamento ou a iniciar.",
       "purpose": "Relaciona a necessidade de capital e de capacidade a cada entrega.",
       "minimum_content": "Identificador, cliente, valor, etapa, prazos, custos previstos e pagos.",
@@ -64,7 +64,7 @@
       ]
     },
     {
-      "code": "D07", "title": "Receita e faturamento por cliente e produto ou serviço", "category": "Comercial", "stage": "03_COMERCIAL",
+      "code": "PI-07", "title": "Receita e faturamento por cliente e produto ou serviço", "category": "Comercial", "stage": "03_COMERCIAL",
       "description": "Faturamento mensal do período combinado, com o mês corrente separado.",
       "purpose": "Base para analisar receita, concentração de clientes e sazonalidade.",
       "minimum_content": "Pedidos, notas, cancelamentos, canal e mês de competência.",
@@ -75,7 +75,7 @@
       ]
     },
     {
-      "code": "D08", "title": "Custos, despesas e DRE", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-08", "title": "Custos, despesas e DRE", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Custos e despesas mensais do período combinado e projeção até o fim do ano.",
       "purpose": "Permite montar a DRE gerencial e as premissas do orçamento.",
       "minimum_content": "Conta, competência, centro de custo, fixo ou variável e itens extraordinários.",
@@ -86,7 +86,7 @@
       ]
     },
     {
-      "code": "D09", "title": "Orçamento e metas existentes", "category": "Planejamento estratégico", "stage": "06_PLANEJAMENTO_ESTRATEGICO",
+      "code": "PI-09", "title": "Orçamento e metas existentes", "category": "Planejamento estratégico", "stage": "06_PLANEJAMENTO_ESTRATEGICO",
       "description": "Orçamento e metas do ano corrente e propostas para o próximo, se houver.",
       "purpose": "Permite comparar com o realizado sem inventar um orçamento que não existiu.",
       "minimum_content": "Versão, aprovação e premissas. Informar quando não existir.",
@@ -97,7 +97,7 @@
       ]
     },
     {
-      "code": "D10", "title": "Casos comerciais e perdas registradas", "category": "Comercial", "stage": "03_COMERCIAL",
+      "code": "PI-10", "title": "Casos comerciais e perdas registradas", "category": "Comercial", "stage": "03_COMERCIAL",
       "description": "Amostra de negociações recentes, ganhas e perdidas.",
       "purpose": "Testa hipóteses sobre preço, canal e argumentos de venda.",
       "minimum_content": "Proposta, resposta do cliente, resultado, motivo e evidência.",
@@ -108,7 +108,7 @@
       ]
     },
     {
-      "code": "D11", "title": "Capacidade, prazos e retrabalho", "category": "Operacional", "stage": "04_OPERACIONAL",
+      "code": "PI-11", "title": "Capacidade, prazos e retrabalho", "category": "Operacional", "stage": "04_OPERACIONAL",
       "description": "Prazos prometidos e realizados, retrabalho e capacidade atual.",
       "purpose": "Verifica o limite de atendimento e a qualidade das entregas.",
       "minimum_content": "Datas previstas e reais, aceites, custo de retrabalho e capacidade disponível.",
@@ -119,7 +119,7 @@
       ]
     },
     {
-      "code": "D12", "title": "Sistemas, relatórios e responsáveis", "category": "Sistemas e processos", "stage": "04_OPERACIONAL",
+      "code": "PI-12", "title": "Sistemas, relatórios e responsáveis", "category": "Sistemas e processos", "stage": "04_OPERACIONAL",
       "description": "Sistemas e planilhas usados na rotina e quem os atualiza.",
       "purpose": "Escolhe as fontes de dados sem exigir troca de sistema.",
       "minimum_content": "Sistema, relatório, responsável, frequência e exemplo de exportação. Sem senhas.",
@@ -129,7 +129,7 @@
       ]
     },
     {
-      "code": "D13", "title": "Equipe, contratos e despesas recorrentes", "category": "Recursos humanos", "stage": "05_RECURSOS_HUMANOS",
+      "code": "PI-13", "title": "Equipe, contratos e despesas recorrentes", "category": "Recursos humanos", "stage": "05_RECURSOS_HUMANOS",
       "description": "Estrutura atual da equipe, contratos recorrentes e mudanças previstas.",
       "purpose": "Avalia capacidade e custo fixo.",
       "minimum_content": "Funções, custo total e dependências. Evitar dados pessoais desnecessários.",
@@ -140,7 +140,7 @@
       ]
     },
     {
-      "code": "D14", "title": "Necessidades e investimentos propostos", "category": "Planejamento estratégico", "stage": "06_PLANEJAMENTO_ESTRATEGICO",
+      "code": "PI-14", "title": "Necessidades e investimentos propostos", "category": "Planejamento estratégico", "stage": "06_PLANEJAMENTO_ESTRATEGICO",
       "description": "Investimentos e iniciativas desejados para o próximo período.",
       "purpose": "Ajuda a priorizar investimentos e iniciativas.",
       "minimum_content": "Justificativa, custo, prazo, capacidade adicional e retorno quando calculável.",
@@ -150,7 +150,7 @@
       ]
     },
     {
-      "code": "D15", "title": "Premissas tributárias", "category": "Contábil e tributário", "stage": "02_FINANCEIRO",
+      "code": "PI-15", "title": "Premissas tributárias", "category": "Contábil e tributário", "stage": "02_FINANCEIRO",
       "description": "Regime tributário e regras aplicáveis ao período planejado.",
       "purpose": "Evita projetar impostos sem validação do contador.",
       "minimum_content": "Validação da contabilidade com efeitos em margem, preço e caixa.",
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "code": "D16", "title": "Histórico comparável de anos anteriores", "category": "Financeiro", "stage": "02_FINANCEIRO",
+      "code": "PI-16", "title": "Histórico comparável de anos anteriores", "category": "Financeiro", "stage": "02_FINANCEIRO",
       "description": "Resultados mensais dos dois anos anteriores, se disponíveis.",
       "purpose": "Aprofunda a análise de sazonalidade. Não bloqueia o início do trabalho.",
       "minimum_content": "Mesmas contas e critérios, ou explicação das diferenças.",
@@ -172,35 +172,35 @@
     }
   ],
   "acoes": [
-    ["A01", "media", "Conferir o contrato assinado e registrar a data de início", "Fixar escopo, vigência e calendário do trabalho", "Governança", "Comparar a via assinada com a proposta e registrar divergências", "Contrato assinado", "Contrato arquivado e datas confirmadas"],
-    ["A02", "media", "Nomear interlocutor e responsáveis pelos dados", "Evitar centralização e pedidos sem dono", "Equipe do cliente", "Indicar titular e substituto para financeiro, comercial e operação", "Nenhuma", "Nomes, contatos e responsabilidades registrados"],
-    ["A03", "media", "Aprovar agenda, canal de comunicação e prioridades", "Dar ritmo à execução dentro da capacidade contratada", "Governança", "Validar até três prioridades do primeiro ciclo e o calendário de encontros", "Contrato e interlocutor definidos", "Ata com decisões e encontros do primeiro ciclo"],
-    ["A04", "alta", "Levantar saldos e obrigações urgentes", "Identificar risco de interrupção da operação", "Financeiro", "Reunir saldos livres e bloqueados, vencidos e obrigações dos próximos 14 dias", "Interlocutor financeiro definido", "Base por banco e obrigação com vencimento e comprovante"],
-    ["A05", "alta", "Levantar recebíveis e trabalhos em execução", "Relacionar entradas esperadas aos desembolsos", "Financeiro e operação", "Exportar títulos e cronograma por contrato ou projeto com identificador único", "Interlocutor financeiro definido", "Valor, data, probabilidade e projeto identificados"],
-    ["A06", "alta", "Mapear dívidas e compromissos financeiros", "Distinguir custo financeiro de amortização", "Financeiro", "Relacionar credor, saldo, parcelas, juros, garantias e atrasos", "Interlocutor financeiro definido", "Contratos e saldos confrontados com as parcelas"],
-    ["A07", "alta", "Montar a projeção de caixa de 13 semanas", "Antecipar semanas com déficit de caixa", "Caixa", "Separar entradas confirmadas e estimadas, saídas e saldos semanais; marcar lacunas", "Saldos, recebíveis e dívidas levantados", "Saldo inicial, entradas, saídas e saldos semanais rastreáveis"],
-    ["A08", "alta", "Definir saldo mínimo e medidas para déficits", "Transformar a previsão em decisões aprovadas", "Direção", "Rever prazos, despesas e execução; escolher medidas e responsáveis", "Projeção de caixa pronta", "Limite, gatilhos e responsáveis formalizados"],
-    ["A09", "alta", "Implantar a atualização semanal do caixa", "Corrigir a previsão com o realizado", "Financeiro", "Atualizar em dia fixo da semana, comparar previsto e realizado e acrescentar uma semana", "Projeção de caixa pronta", "Primeiro previsto versus realizado com diferenças explicadas"],
-    ["A10", "media", "Consolidar dados mensais do ano", "Conhecer o ponto de partida e a sazonalidade", "Financeiro e comercial", "Reunir meses fechados, mês corrente separado e projeção até o fim do ano", "Interlocutores definidos", "Receita, custos e despesas com competência e fonte"],
-    ["A11", "media", "Selecionar uma amostra de casos para análise", "Investigar margem e descasamentos reais", "Direção e operação", "Escolher casos representativos: recorrente, grande, com retrabalho, perdido e com pressão de caixa", "Lista de contratos ou projetos", "Amostra aprovada"],
-    ["A12", "media", "Montar a primeira leitura de DRE e margem", "Separar resultado econômico de saldo bancário", "Controladoria", "Classificar custos diretos, variáveis e fixos e apontar pendências", "Dados mensais e amostra", "DRE preliminar e margem com tributos e rateios explícitos"],
-    ["A13", "media", "Mapear o processo da venda ao recebimento", "Localizar atrasos, aprovações e retrabalho", "Operação", "Percorrer orçamento, aprovação, execução, faturamento e recebimento", "Interlocutores e amostra definidos", "Fluxo atual, responsáveis, documentos e principais gargalos documentados"],
-    ["A14", "media", "Validar o diagnóstico e as causas prioritárias", "Evitar tratar percepção como causa comprovada", "Direção", "Cruzar fatos e hipóteses; usar Pareto ou 5 Porquês com base em dados", "DRE, processo e amostra analisados", "Até três problemas com evidência, consequência e teste"],
-    ["A15", "media", "Aprovar e aplicar uma correção de processo", "Começar a melhoria sem esperar o plano completo", "Processo escolhido", "A direção aprova; a equipe aplica em um caso em curso; a consultoria acompanha", "Diagnóstico validado", "Registro antes e depois e resultado observado"],
-    ["A16", "media", "Registrar o modelo de negócio atual e a SWOT", "Escolher prioridades compatíveis com o negócio", "Estratégia", "Canvas atual e SWOT curta, ligando cada fator a uma fonte ou teste", "Dados, amostra e processo analisados", "Hipóteses separadas e escolhas pendentes identificadas"],
-    ["A17", "media", "Definir premissas comerciais do próximo ano", "Construir a receita por volume, preço, mix e capacidade", "Direção e comercial", "Definir clientes ativos, pedidos, ticket médio, conversão, prazos e regiões", "DRE, diagnóstico e SWOT", "Premissas com fonte, responsável e grau de confirmação"],
-    ["A18", "media", "Levantar despesas, investimentos e capacidade do próximo ano", "Financiar as iniciativas sem comprometer as entregas", "Financeiro e operação", "Separar fixo e variável, despesa e investimento, principal e juros", "Premissas comerciais", "Planilha de premissas e necessidades por mês"],
-    ["A19", "media", "Validar premissas tributárias com a contabilidade", "Evitar projetar impostos sem revisão", "Contabilidade", "Confirmar regime, efeitos aplicáveis e tratamento de créditos e prazos", "Premissas de despesas", "Nota do contador e premissas rastreáveis"],
-    ["A20", "media", "Montar o orçamento gerencial preliminar", "Ligar as escolhas à necessidade de caixa e margem", "Orçamento", "Mensalizar receita, DRE, caixa e investimentos; cenários base e pressionado", "Premissas comerciais, despesas e tributos", "Versão preliminar com lacunas e sensibilidades"],
-    ["A21", "media", "Decidir prioridades e recursos do próximo ano", "Converter o orçamento em decisões executáveis", "Direção", "Aprovar versão inicial, limites e condições; adiar o que não tiver evidência", "Orçamento preliminar", "Versão aprovada ou pendências com responsáveis e prazos"],
-    ["A22", "media", "Aprovar indicadores e rotina de acompanhamento", "Acompanhar causas e resultados sem excesso de relatórios", "Gestão", "Escolher poucos indicadores, com fórmula, fonte, período, responsável e alerta", "Diagnóstico validado", "Dicionário de indicadores aprovado"],
-    ["A23", "baixa", "Conferir faturamento e condições do contrato de consultoria", "Evitar divergências administrativas no início", "Administrativo", "Conferir cláusulas de preço, período e vencimentos", "Contrato assinado", "Demonstrativo validado e vencimentos conferidos"],
-    ["A24", "alta", "Revisar o efeito das primeiras decisões de caixa", "Verificar se o risco diminuiu", "Direção", "Comparar projeção anterior, realizado e saldo mínimo aprovado", "Medidas e atualização semanal em curso", "Desvios explicados e decisões atualizadas"],
-    ["A25", "media", "Encerrar o ciclo e pactuar o seguinte", "Proteger foco e capacidade da consultoria", "Governança", "Revisar entregas, pendências, horas usadas e próximas prioridades", "Orçamento, indicadores e revisão de caixa", "Aceite registrado e agenda do próximo ciclo"],
-    ["A26", "media", "Fechar o ano e reconciliar a DRE gerencial", "Trocar estimativas por valores realizados", "Financeiro", "Fechar os meses finais; a contabilidade valida classificações; a equipe concilia", "Dados mensais consolidados", "Diferenças identificadas e relatório fechado ou ressalvado"],
-    ["A27", "media", "Atualizar o orçamento com o fechamento do ano", "Corrigir a primeira versão com dados reais", "Orçamento", "Revisar premissas relevantes e projeções; versionar as alterações", "Prioridades decididas e ano fechado", "Orçamento revisado com decisões aprovadas"],
-    ["A28", "media", "Testar orçamento e margem em novos trabalhos", "Validar preço e prazo na rotina real", "Operação e comercial", "Aplicar o critério aprovado e registrar orçado versus realizado", "DRE, correção de processo e prioridades", "Casos comparáveis com desvio e causa documentada"],
-    ["A29", "media", "Avaliar canais de venda e parceiros", "Reduzir atrito e escolher clientes com base em evidências", "Modelo de negócio", "Rever casos reais, origem das vendas e regras com parceiros; validar aspectos jurídicos se necessário", "SWOT e testes de margem", "Regras propostas e decisões de posicionamento"],
-    ["A30", "media", "Consolidar o diagnóstico e a revisão de 90 dias", "Escolher o próximo trimestre com base nos resultados", "Governança", "Rever caixa, margem, processo, orçamento e lacunas; atualizar Canvas e SWOT", "Orçamento atualizado e testes realizados", "Até três prioridades aprovadas para o próximo ciclo"]
+    ["AP-01", "media", "Conferir o contrato assinado e registrar a data de início", "Fixar escopo, vigência e calendário do trabalho", "Governança", "Comparar a via assinada com a proposta e registrar divergências", "Contrato assinado", "Contrato arquivado e datas confirmadas"],
+    ["AP-02", "media", "Nomear interlocutor e responsáveis pelos dados", "Evitar centralização e pedidos sem dono", "Equipe do cliente", "Indicar titular e substituto para financeiro, comercial e operação", "Nenhuma", "Nomes, contatos e responsabilidades registrados"],
+    ["AP-03", "media", "Aprovar agenda, canal de comunicação e prioridades", "Dar ritmo à execução dentro da capacidade contratada", "Governança", "Validar até três prioridades do primeiro ciclo e o calendário de encontros", "Contrato e interlocutor definidos", "Ata com decisões e encontros do primeiro ciclo"],
+    ["AP-04", "alta", "Levantar saldos e obrigações urgentes", "Identificar risco de interrupção da operação", "Financeiro", "Reunir saldos livres e bloqueados, vencidos e obrigações dos próximos 14 dias", "Interlocutor financeiro definido", "Base por banco e obrigação com vencimento e comprovante"],
+    ["AP-05", "alta", "Levantar recebíveis e trabalhos em execução", "Relacionar entradas esperadas aos desembolsos", "Financeiro e operação", "Exportar títulos e cronograma por contrato ou projeto com identificador único", "Interlocutor financeiro definido", "Valor, data, probabilidade e projeto identificados"],
+    ["AP-06", "alta", "Mapear dívidas e compromissos financeiros", "Distinguir custo financeiro de amortização", "Financeiro", "Relacionar credor, saldo, parcelas, juros, garantias e atrasos", "Interlocutor financeiro definido", "Contratos e saldos confrontados com as parcelas"],
+    ["AP-07", "alta", "Montar a projeção de caixa de 13 semanas", "Antecipar semanas com déficit de caixa", "Caixa", "Separar entradas confirmadas e estimadas, saídas e saldos semanais; marcar lacunas", "Saldos, recebíveis e dívidas levantados", "Saldo inicial, entradas, saídas e saldos semanais rastreáveis"],
+    ["AP-08", "alta", "Definir saldo mínimo e medidas para déficits", "Transformar a previsão em decisões aprovadas", "Direção", "Rever prazos, despesas e execução; escolher medidas e responsáveis", "Projeção de caixa pronta", "Limite, gatilhos e responsáveis formalizados"],
+    ["AP-09", "alta", "Implantar a atualização semanal do caixa", "Corrigir a previsão com o realizado", "Financeiro", "Atualizar em dia fixo da semana, comparar previsto e realizado e acrescentar uma semana", "Projeção de caixa pronta", "Primeiro previsto versus realizado com diferenças explicadas"],
+    ["AP-10", "media", "Consolidar dados mensais do ano", "Conhecer o ponto de partida e a sazonalidade", "Financeiro e comercial", "Reunir meses fechados, mês corrente separado e projeção até o fim do ano", "Interlocutores definidos", "Receita, custos e despesas com competência e fonte"],
+    ["AP-11", "media", "Selecionar uma amostra de casos para análise", "Investigar margem e descasamentos reais", "Direção e operação", "Escolher casos representativos: recorrente, grande, com retrabalho, perdido e com pressão de caixa", "Lista de contratos ou projetos", "Amostra aprovada"],
+    ["AP-12", "media", "Montar a primeira leitura de DRE e margem", "Separar resultado econômico de saldo bancário", "Controladoria", "Classificar custos diretos, variáveis e fixos e apontar pendências", "Dados mensais e amostra", "DRE preliminar e margem com tributos e rateios explícitos"],
+    ["AP-13", "media", "Mapear o processo da venda ao recebimento", "Localizar atrasos, aprovações e retrabalho", "Operação", "Percorrer orçamento, aprovação, execução, faturamento e recebimento", "Interlocutores e amostra definidos", "Fluxo atual, responsáveis, documentos e principais gargalos documentados"],
+    ["AP-14", "media", "Validar o diagnóstico e as causas prioritárias", "Evitar tratar percepção como causa comprovada", "Direção", "Cruzar fatos e hipóteses; usar Pareto ou 5 Porquês com base em dados", "DRE, processo e amostra analisados", "Até três problemas com evidência, consequência e teste"],
+    ["AP-15", "media", "Aprovar e aplicar uma correção de processo", "Começar a melhoria sem esperar o plano completo", "Processo escolhido", "A direção aprova; a equipe aplica em um caso em curso; a consultoria acompanha", "Diagnóstico validado", "Registro antes e depois e resultado observado"],
+    ["AP-16", "media", "Registrar o modelo de negócio atual e a SWOT", "Escolher prioridades compatíveis com o negócio", "Estratégia", "Canvas atual e SWOT curta, ligando cada fator a uma fonte ou teste", "Dados, amostra e processo analisados", "Hipóteses separadas e escolhas pendentes identificadas"],
+    ["AP-17", "media", "Definir premissas comerciais do próximo ano", "Construir a receita por volume, preço, mix e capacidade", "Direção e comercial", "Definir clientes ativos, pedidos, ticket médio, conversão, prazos e regiões", "DRE, diagnóstico e SWOT", "Premissas com fonte, responsável e grau de confirmação"],
+    ["AP-18", "media", "Levantar despesas, investimentos e capacidade do próximo ano", "Financiar as iniciativas sem comprometer as entregas", "Financeiro e operação", "Separar fixo e variável, despesa e investimento, principal e juros", "Premissas comerciais", "Planilha de premissas e necessidades por mês"],
+    ["AP-19", "media", "Validar premissas tributárias com a contabilidade", "Evitar projetar impostos sem revisão", "Contabilidade", "Confirmar regime, efeitos aplicáveis e tratamento de créditos e prazos", "Premissas de despesas", "Nota do contador e premissas rastreáveis"],
+    ["AP-20", "media", "Montar o orçamento gerencial preliminar", "Ligar as escolhas à necessidade de caixa e margem", "Orçamento", "Mensalizar receita, DRE, caixa e investimentos; cenários base e pressionado", "Premissas comerciais, despesas e tributos", "Versão preliminar com lacunas e sensibilidades"],
+    ["AP-21", "media", "Decidir prioridades e recursos do próximo ano", "Converter o orçamento em decisões executáveis", "Direção", "Aprovar versão inicial, limites e condições; adiar o que não tiver evidência", "Orçamento preliminar", "Versão aprovada ou pendências com responsáveis e prazos"],
+    ["AP-22", "media", "Aprovar indicadores e rotina de acompanhamento", "Acompanhar causas e resultados sem excesso de relatórios", "Gestão", "Escolher poucos indicadores, com fórmula, fonte, período, responsável e alerta", "Diagnóstico validado", "Dicionário de indicadores aprovado"],
+    ["AP-23", "baixa", "Conferir faturamento e condições do contrato de consultoria", "Evitar divergências administrativas no início", "Administrativo", "Conferir cláusulas de preço, período e vencimentos", "Contrato assinado", "Demonstrativo validado e vencimentos conferidos"],
+    ["AP-24", "alta", "Revisar o efeito das primeiras decisões de caixa", "Verificar se o risco diminuiu", "Direção", "Comparar projeção anterior, realizado e saldo mínimo aprovado", "Medidas e atualização semanal em curso", "Desvios explicados e decisões atualizadas"],
+    ["AP-25", "media", "Encerrar o ciclo e pactuar o seguinte", "Proteger foco e capacidade da consultoria", "Governança", "Revisar entregas, pendências, horas usadas e próximas prioridades", "Orçamento, indicadores e revisão de caixa", "Aceite registrado e agenda do próximo ciclo"],
+    ["AP-26", "media", "Fechar o ano e reconciliar a DRE gerencial", "Trocar estimativas por valores realizados", "Financeiro", "Fechar os meses finais; a contabilidade valida classificações; a equipe concilia", "Dados mensais consolidados", "Diferenças identificadas e relatório fechado ou ressalvado"],
+    ["AP-27", "media", "Atualizar o orçamento com o fechamento do ano", "Corrigir a primeira versão com dados reais", "Orçamento", "Revisar premissas relevantes e projeções; versionar as alterações", "Prioridades decididas e ano fechado", "Orçamento revisado com decisões aprovadas"],
+    ["AP-28", "media", "Testar orçamento e margem em novos trabalhos", "Validar preço e prazo na rotina real", "Operação e comercial", "Aplicar o critério aprovado e registrar orçado versus realizado", "DRE, correção de processo e prioridades", "Casos comparáveis com desvio e causa documentada"],
+    ["AP-29", "media", "Avaliar canais de venda e parceiros", "Reduzir atrito e escolher clientes com base em evidências", "Modelo de negócio", "Rever casos reais, origem das vendas e regras com parceiros; validar aspectos jurídicos se necessário", "SWOT e testes de margem", "Regras propostas e decisões de posicionamento"],
+    ["AP-30", "media", "Consolidar o diagnóstico e a revisão de 90 dias", "Escolher o próximo trimestre com base nos resultados", "Governança", "Rever caixa, margem, processo, orçamento e lacunas; atualizar Canvas e SWOT", "Orçamento atualizado e testes realizados", "Até três prioridades aprovadas para o próximo ciclo"]
   ]
 }

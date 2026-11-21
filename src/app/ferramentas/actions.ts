@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getProjectAccess } from "@/lib/access";
+import { nextCode } from "@/lib/codigos";
 import { TOOLS, actionCandidates, emptyData, isToolKind, normalize } from "@/lib/ferramentas";
 import { createClient } from "@/lib/supabase/server";
 
@@ -82,15 +83,6 @@ export async function deleteTool(_: ToolResult, form: FormData): Promise<ToolRes
   redirect(`/${areaOf(form)}/projetos/${ctx.projectId}/ferramentas`);
 }
 
-/** Próximo código livre no formato A01, A02… */
-function nextCode(codes: (string | null)[]): string {
-  const max = codes.reduce((m, c) => {
-    const n = /^A(\d{1,4})$/i.exec(c ?? "");
-    return n ? Math.max(m, Number(n[1])) : m;
-  }, 0);
-  return `A${String(max + 1).padStart(2, "0")}`;
-}
-
 export async function toolToAction(_: ToolResult, form: FormData): Promise<ToolResult> {
   const ctx = await staff(form);
   const toolId = uuid.safeParse(form.get("toolId"));
@@ -111,7 +103,7 @@ export async function toolToAction(_: ToolResult, form: FormData): Promise<ToolR
     .from("action_items")
     .insert({
       project_id: ctx.projectId,
-      code: nextCode((existing ?? []).map((a) => a.code)),
+      code: nextCode("AP", (existing ?? []).map((a) => a.code)),
       kind: "acao_5w2h",
       title: item.text.slice(0, 300),
       rationale: `Gerada a partir de ${TOOLS[tool.kind].label} "${tool.title}" (${item.group}).`,

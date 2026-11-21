@@ -92,7 +92,7 @@ export async function getProject(id: string) {
     supabase.from("objectives").select("id, code, name, who_decides, decision_inputs, verification").eq("project_id", id).order("sort_order"),
     supabase
       .from("action_items")
-      .select("id, code, title, rationale, area, how, owner_label, due_on, status, completion_criteria, dependency_note, objective_id")
+      .select("id, code, title, rationale, area, how, owner_label, due_on, status, completion_criteria, dependency_note, objective_id, executor:profiles!action_items_executor_id_fkey(full_name)")
       .eq("project_id", id)
       .order("code"),
     supabase.from("meetings").select("id, scheduled_on, title, agenda, expected_output, held").eq("project_id", id).order("scheduled_on"),

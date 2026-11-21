@@ -56,5 +56,14 @@ export async function createTestDb(prefix: string) {
     ]);
   }
 
-  return { db, as, cleanup, addUser };
+  /**
+   * Reaplica a troca de códigos (D01 → PI-01, A01 → AP-01) depois de carregar
+   * dados antigos, como aconteceu em produção.
+   */
+  async function renameCodes() {
+    const sql = readFileSync(join(dir, "20261121001100_relatorios_codigos.sql"), "utf8");
+    await db.query(sql.slice(sql.indexOf("-- 2. Códigos")));
+  }
+
+  return { db, as, cleanup, addUser, renameCodes };
 }

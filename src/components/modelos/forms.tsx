@@ -63,8 +63,8 @@ export function RequestForm({
 
       <fieldset className="grid gap-4 sm:grid-cols-[140px_1fr]">
         <legend className="mb-2 font-semibold text-plum">Identificação</legend>
-        <Field label="Código" name="code" hint="Ex.: D17">
-          <input id="code" name="code" required maxLength={20} defaultValue={v("code")} className={inputClass} />
+        <Field label="Código" name="code" hint={projectId && !requestId ? "Em branco, o sistema numera (PI-17…)" : "Ex.: PI-17"}>
+          <input id="code" name="code" required={!projectId || !!requestId} maxLength={20} defaultValue={v("code")} className={inputClass} />
         </Field>
         <Field label="Título do pedido" name="title">
           <input id="title" name="title" required maxLength={300} defaultValue={v("title")} className={inputClass} />
@@ -153,7 +153,7 @@ export function ActionTemplateForm({ templateId, defaults }: { templateId?: stri
       <Feedback state={state} />
       {templateId && <input type="hidden" name="templateId" value={templateId} />}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Código" name="code" hint="Ex.: A40">
+        <Field label="Código" name="code" hint="Ex.: AP-40">
           <input id="code" name="code" required maxLength={20} defaultValue={v("code")} className={inputClass} />
         </Field>
         <Field label="Tipo" name="kind">
