@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PublicShell } from "@/components/app-shell";
+import { PublicShell } from "@/components/public-shell";
 import { Alert } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { isWellFormedToken } from "@/lib/tokens";

@@ -36,3 +36,29 @@ describe("regras de status", () => {
     expect(formatDate(null)).toBe("Sem prazo");
   });
 });
+
+import { safeFileName, validateUpload, formatBytes, MAX_UPLOAD_BYTES } from "@/lib/upload";
+
+describe("validação de arquivos", () => {
+  const fmts = ["pdf", "xlsx"];
+  it("aceita formatos do pedido e recusa os demais", () => {
+    expect(validateUpload({ name: "Contrato.PDF", size: 10, type: "application/pdf" }, fmts)).toBeNull();
+    expect(validateUpload({ name: "planilha.xlsx", size: 10, type: "" }, fmts)).toBeNull();
+    expect(validateUpload({ name: "foto.png", size: 10, type: "image/png" }, fmts)).toMatch(/Formato não aceito/);
+    expect(validateUpload({ name: "sem-extensao", size: 10, type: "" }, fmts)).toMatch(/Formato não aceito/);
+  });
+  it("recusa arquivo vazio, grande demais ou com tipo trocado", () => {
+    expect(validateUpload({ name: "a.pdf", size: 0, type: "application/pdf" }, fmts)).toMatch(/Selecione/);
+    expect(validateUpload({ name: "a.pdf", size: MAX_UPLOAD_BYTES + 1, type: "application/pdf" }, fmts)).toMatch(/25 MB/);
+    expect(validateUpload({ name: "a.pdf", size: 10, type: "application/x-msdownload" }, fmts)).toMatch(/não corresponde/);
+  });
+  it("gera nome seguro para o armazenamento", () => {
+    expect(safeFileName("Balanço 2025 / versão final.PDF")).toBe("Balanco-2025-versao-final.pdf");
+    expect(safeFileName("../../etc/passwd")).toBe("etc-passwd");
+    expect(safeFileName(".pdf")).toBe("arquivo.pdf");
+  });
+  it("formata tamanhos", () => {
+    expect(formatBytes(2048)).toBe("2 KB");
+    expect(formatBytes(3.5 * 1024 * 1024)).toBe("3,5 MB");
+  });
+});

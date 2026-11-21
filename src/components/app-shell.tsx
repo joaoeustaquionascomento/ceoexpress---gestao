@@ -1,20 +1,33 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui";
 import type { SessionUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 type NavItem = { href: string; label: string };
 
-export function AppShell({
+async function unreadCount(): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .is("read_at", null);
+  return count ?? 0;
+}
+
+export async function AppShell({
   area,
   nav,
   user,
+  notificationsHref,
   children,
 }: {
   area: string;
   nav: NavItem[];
   user: SessionUser;
+  notificationsHref: string;
   children: React.ReactNode;
 }) {
+  const unread = await unreadCount();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
@@ -27,6 +40,18 @@ export function AppShell({
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted md:inline">{user.fullName}</span>
+            <Link
+              href={notificationsHref}
+              className="relative inline-flex min-h-11 items-center rounded-lg border border-line px-3 text-sm font-semibold text-mauve hover:bg-tint"
+              aria-label={unread ? `Avisos: ${unread} não lidos` : "Avisos"}
+            >
+              Avisos
+              {unread > 0 && (
+                <span className="ml-2 inline-flex min-w-6 justify-center rounded-full bg-rose px-1.5 text-xs leading-6 text-white">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </Link>
             <form action="/sair" method="post">
               <button className="min-h-11 rounded-lg border border-line px-3 text-sm font-semibold text-mauve hover:bg-tint">
                 Sair
@@ -54,19 +79,5 @@ export function AppShell({
         CEOEXPRESS — Inteligência estratégica, execução e resultados em uma única plataforma.
       </footer>
     </div>
-  );
-}
-
-export function PublicShell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="flex min-h-screen items-start justify-center px-4 py-10 sm:items-center">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex justify-center">
-          <Logo width={168} />
-        </div>
-        <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">{children}</div>
-        <p className="mt-6 text-center text-xs text-muted">CEOEXPRESS | Gestão Estratégica</p>
-      </div>
-    </main>
   );
 }

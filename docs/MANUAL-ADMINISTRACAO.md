@@ -1,4 +1,4 @@
-# Manual de administração (fase 0)
+# Manual de administração (fases 0 e 2)
 
 Este manual cobre o que já está disponível. Ele será ampliado a cada fase.
 
@@ -47,4 +47,19 @@ decisões, lacunas, hipóteses e premissas. A categoria de cada pedido foi atrib
 portal original não a registrava, e pode ser ajustada.
 
 Os responsáveis aparecem por extenso (ex.: "Financeiro FIQ"). Depois que as pessoas aceitarem os convites,
-cada pedido poderá ser atribuído a um usuário (fase 2).
+cada pedido pode ser atribuído a um usuário na tela do pedido.
+
+## Documentos (fase 2)
+
+1. No projeto, abra um pedido com **Abrir pedido**.
+2. O cliente envia o arquivo (até 25 MB, nos formatos aceitos pelo pedido). Enviar de novo cria uma nova
+   versão; as anteriores ficam no histórico.
+3. Enviar **não é validar**: o pedido fica como *Enviado* até a consultoria analisar.
+4. A consultoria escolhe **Aprovar**, **Pedir complementação** (com mensagem obrigatória ao cliente) ou
+   **Não aplicável**. O cliente recebe um aviso.
+5. Mensagens marcadas como *nota interna* só aparecem para a consultoria.
+6. Arquivos excluídos pelo cliente podem ser restaurados pela consultoria.
+7. Os downloads usam links temporários (5 minutos); a pasta de arquivos não é pública.
+
+O sino **Avisos**, no topo, mostra documentos recebidos, análises e novas mensagens. O envio desses avisos por
+e-mail entra numa fase seguinte.

@@ -15,7 +15,7 @@ export default async function ProjetoPage({ params }: { params: Promise<{ id: st
       <PageTitle eyebrow={data.project.company?.trade_name} title={data.project.name}>
         {data.project.description}
       </PageTitle>
-      <ProjectView data={data} audience="staff" />
+      <ProjectView data={data} audience="staff" basePath={`/admin/projetos/${id}`} />
     </>
   );
 }

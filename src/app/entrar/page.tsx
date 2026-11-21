@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PublicShell } from "@/components/app-shell";
+import { PublicShell } from "@/components/public-shell";
 import { LoginForm } from "./login-form";
 import { Alert } from "@/components/ui";
 

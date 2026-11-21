@@ -116,3 +116,62 @@ export async function getProject(id: string) {
     decisions: decisions.data ?? [],
   };
 }
+
+export async function getRequestDetail(requestId: string) {
+  const supabase = await createClient();
+  const { data: request } = await supabase
+    .from("info_requests")
+    .select(
+      "id, project_id, code, title, category, status, due_on, owner_label, assigned_to, description, purpose, minimum_content, examples, accepted_formats, instructions, checklist, visibility, project:projects(id, name, company:companies(trade_name))",
+    )
+    .eq("id", requestId)
+    .maybeSingle();
+  if (!request) return null;
+  const [docs, comments, members] = await Promise.all([
+    supabase
+      .from("documents")
+      .select(
+        "id, title, created_by, deleted_at, created_at, author:profiles!documents_created_by_fkey(full_name), versions:document_versions(id, version, file_name, size_bytes, created_at, period, source, comment, checklist_items, uploader:profiles!document_versions_uploaded_by_fkey(full_name))",
+      )
+      .eq("info_request_id", requestId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("comments")
+      .select("id, body, visibility, created_at, author:profiles!comments_author_id_fkey(full_name)")
+      .eq("target_type", "info_request")
+      .eq("target_id", requestId)
+      .order("created_at"),
+    supabase
+      .from("project_members")
+      .select("user_id, role, profile:profiles(full_name)")
+      .eq("project_id", request.project_id),
+  ]);
+  type Version = {
+    id: string; version: number; file_name: string; size_bytes: number; created_at: string;
+    period: string | null; source: string | null; comment: string | null; checklist_items: string[];
+    uploader: { full_name: string } | null;
+  };
+  type Doc = {
+    id: string; title: string; created_by: string; deleted_at: string | null; created_at: string;
+    author: { full_name: string } | null; versions: Version[];
+  };
+  const documents = ((docs.data ?? []) as unknown as Doc[])
+    .map((d) => ({ ...d, versions: [...d.versions].sort((a, b) => b.version - a.version) }))
+    .filter((d) => d.versions.length > 0);
+  return {
+    request: request as unknown as RequestRow & {
+      project_id: string;
+      assigned_to: string | null;
+      project: { id: string; name: string; company: { trade_name: string } | null };
+    },
+    documents,
+    comments: (comments.data ?? []) as unknown as {
+      id: string; body: string; visibility: "client" | "internal"; created_at: string; author: { full_name: string } | null;
+    }[],
+    members: (members.data ?? []) as unknown as { user_id: string; role: string; profile: { full_name: string } | null }[],
+  };
+}
+
+export function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
+}
