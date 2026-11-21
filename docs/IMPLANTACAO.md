@@ -19,9 +19,10 @@ Faça primeiro em um ambiente de **homologação** e só depois repita em produ�
 6. Em **Authentication > URL Configuration**:
    - *Site URL*: o endereço do app (ex.: `https://app.ceoexpress.com.br`);
    - *Redirect URLs*: `https://app.ceoexpress.com.br/auth/callback`.
-7. Em **Authentication > Emails**, no modelo *Reset password*, troque o link do e-mail por este (o link
-   abre uma página com o botão **Continuar**, funciona em qualquer navegador e não é gasto por robôs de
-   segurança do e-mail):
+7. O link de redefinição já funciona com o modelo padrão do Supabase, em qualquer navegador. Depois de
+   configurar um SMTP próprio (o Supabase só libera a edição de modelos com ele), troque em
+   **Authentication > Emails > Reset password** o link por este, que abre uma página com o botão
+   **Continuar** e não é gasto por robôs de segurança do e-mail:
 
    ```html
    <h2>Redefinir senha</h2>
@@ -30,8 +31,8 @@ Faça primeiro em um ambiente de **homologação** e só depois repita em produ�
    <p>Se não foi você, ignore este e-mail.</p>
    ```
 
-   Configure também um SMTP próprio (ex.: Resend) com o remetente da CEOEXPRESS. O SMTP padrão do Supabase
-   tem limite baixo de envios.
+   O SMTP próprio (ex.: Resend) é obrigatório antes de liberar o app aos clientes: o SMTP padrão do Supabase
+   só entrega e-mails para os membros da equipe do projeto no Supabase e tem limite baixo de envios.
 
 ### Primeiro administrador
 
