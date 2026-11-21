@@ -115,6 +115,9 @@ export async function PlanPage({
         <Link href={`${base}/agenda`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Agenda e decisões
         </Link>
+        <Link href={`${base}/ferramentas`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+          Ferramentas
+        </Link>
         <a href={`/exportar/${id}/acoes`} download className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
           Baixar CSV
         </a>

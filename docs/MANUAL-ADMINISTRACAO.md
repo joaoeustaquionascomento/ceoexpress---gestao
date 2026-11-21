@@ -1,4 +1,4 @@
-# Manual de administração (fases 0 a 4 e modelos)
+# Manual de administração (fases 0 a 4, modelos e ferramentas)
 
 Este manual cobre o que já está disponível. Ele será ampliado a cada fase.
 
@@ -132,3 +132,17 @@ e clicar nele no e-mail marca como lido. Funciona depois de configurar `RESEND_A
 - **Excluir ação**: abra a ação e use "Excluir esta ação". Se outra ação depende dela, tire a dependência primeiro
   ou marque como "Cancelada", que mantém o registro.
 - Toda exclusão fica registrada na Auditoria.
+
+## Ferramentas de gestão (pacote diagnóstico)
+
+No projeto, botão **Ferramentas de gestão** (também no plano, em "Ferramentas"). A consultoria cria e preenche:
+
+- **SWOT (FOFA):** forças, fraquezas, oportunidades e ameaças.
+- **Matriz GUT:** problemas com notas de 1 a 5 para gravidade, urgência e tendência; a lista se ordena pela pontuação.
+- **5 Porquês:** do problema à causa raiz e à contramedida.
+- **Ishikawa (espinha de peixe):** causas possíveis em seis grupos.
+- **Pareto:** categorias e valores; o gráfico mostra as "poucas vitais" que somam cerca de 80% do total.
+
+Cada ferramenta tem o painel "Como usar", o campo de conclusões, o botão **Gerar ação** em cada item (a ação
+entra no plano sem executor e sem prazo) e **Baixar planilha (CSV)**. Nascem internas; marque "Compartilhar com
+o cliente" para ele ver (sem editar).
