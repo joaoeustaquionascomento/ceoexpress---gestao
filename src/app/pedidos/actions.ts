@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getProjectAccess } from "@/lib/access";
@@ -130,8 +131,14 @@ export async function finalizeUpload(input: z.infer<typeof finalizeSchema>): Pro
   if (!d.path.startsWith(prefix) || d.path.includes("..")) return { ok: false, error: "Caminho de arquivo inválido." };
 
   // Confere se o arquivo chegou ao armazenamento e tem o tamanho informado.
+  // A leitura usa a chave de serviço: pelas regras do armazenamento, o
+  // usuário só enxerga o arquivo depois que a versão é registrada abaixo.
+  // A permissão já foi conferida acima, e o caminho é o deste documento.
   const fileName = d.path.slice(prefix.length);
-  const { data: listed } = await supabase.storage.from(BUCKET).list(prefix.slice(0, -1), { search: fileName });
+  const { data: listed, error: listError } = await createAdminClient()
+    .storage.from(BUCKET)
+    .list(prefix.slice(0, -1), { search: fileName });
+  if (listError) console.error("[envio] falha ao conferir o arquivo:", listError.message);
   const stored = listed?.find((o) => o.name === fileName);
   const storedSize = (stored?.metadata as { size?: number } | undefined)?.size;
   if (!stored || (storedSize !== undefined && storedSize !== d.size)) {
