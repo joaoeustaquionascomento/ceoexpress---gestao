@@ -97,4 +97,20 @@ describe.skipIf(!ADMIN_URL)("banco: mentoria", () => {
     const porDim = await t.as(u.consultor, "select title from mentoring_library where tags && array['ie_lideranca:empatia']");
     expect(porDim.length).toBeGreaterThanOrEqual(3);
   });
+
+  it("tipo do projeto: só o admin altera; excluir apaga avaliações e pedidos com arquivo", async () => {
+    expect(await t.as(u.consultor, "update projects set kind = 'Consultoria' where id = $1 returning id", [p.A])).toHaveLength(0);
+    await t.as(u.admin, "update projects set kind = 'Reestruturação' where id = $1", [p.A]);
+    const k = await t.db.query("select kind from projects where id = $1", [p.A]);
+    expect(k.rows[0].kind).toBe("Reestruturação");
+    const [req] = await t.as<{ id: string }>(u.consultor, "insert into info_requests (project_id, code, title, category) values ($1,'PI-01','Contrato','Início') returning id", [p.A]);
+    await t.db.query("insert into documents (project_id, company_id, info_request_id, title) values ($1,$2,$3,'x')", [p.A, c.A, req.id]);
+    expect(await t.as(u.consultor, "delete from projects where id = $1 returning id", [p.A])).toHaveLength(0);
+    await t.as(u.admin, "delete from projects where id = $1", [p.A]);
+    const left = await t.db.query(
+      "select (select count(*) from assessment_applications where project_id = $1)::int a, (select count(*) from info_requests where project_id = $1)::int r",
+      [p.A],
+    );
+    expect(left.rows[0]).toEqual({ a: 0, r: 0 });
+  });
 });
