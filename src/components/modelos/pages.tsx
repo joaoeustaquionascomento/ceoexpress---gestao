@@ -77,9 +77,11 @@ export async function ApplyTemplatesPage({ area, projectId, novo }: { area: Staf
   const [header, access] = await Promise.all([getProjectHeader(projectId), getProjectAccess(projectId)]);
   if (!header || !access?.staff) notFound();
   const supabase = await createClient();
+  const { data: proj } = await supabase.from("projects").select("kind").eq("id", projectId).maybeSingle();
+  const service = /mentoria/i.test(proj?.kind ?? "") ? "mentoria" : "empresa";
   const [reqTpl, actTpl, reqs, acts] = await Promise.all([
-    supabase.from("request_templates").select("id, code, title, category").eq("active", true).order("sort_order").order("code"),
-    supabase.from("action_templates").select("id, code, title, area").eq("active", true).order("sort_order").order("code"),
+    supabase.from("request_templates").select("id, code, title, category").eq("active", true).eq("service", service).order("sort_order").order("code"),
+    supabase.from("action_templates").select("id, code, title, area").eq("active", true).eq("service", service).order("sort_order").order("code"),
     supabase.from("info_requests").select("code").eq("project_id", projectId),
     supabase.from("action_items").select("code").eq("project_id", projectId),
   ]);
@@ -91,6 +93,7 @@ export async function ApplyTemplatesPage({ area, projectId, novo }: { area: Staf
       <BackLink href={base} label="Ir para o projeto" />
       <PageTitle eyebrow={header.company?.trade_name} title="Adicionar pedidos e ações dos modelos">
         {header.name}. Marque o que este projeto precisa e clique em criar. Você pode voltar aqui quantas vezes quiser.
+        {service === "mentoria" && " Como é um projeto de mentoria, aparecem só os modelos de mentoria."}
       </PageTitle>
       {novo && <div className="mb-4"><Alert tone="ok">Projeto criado. Agora escolha os pedidos e as ações que ele vai ter.</Alert></div>}
       <TemplatePicker
@@ -112,12 +115,12 @@ export async function ApplyTemplatesPage({ area, projectId, novo }: { area: Staf
 export async function LibraryPage() {
   const supabase = await createClient();
   const [reqTpl, actTpl, projects] = await Promise.all([
-    supabase.from("request_templates").select("id, code, title, category, active").order("sort_order").order("code"),
-    supabase.from("action_templates").select("id, code, title, area, active").order("sort_order").order("code"),
+    supabase.from("request_templates").select("id, code, title, category, active, service").order("service").order("sort_order").order("code"),
+    supabase.from("action_templates").select("id, code, title, area, active, service").order("service").order("sort_order").order("code"),
     supabase.from("projects").select("id, name, company:companies(trade_name)").order("created_at"),
   ]);
   const list = (
-    rows: { id: string; code: string; title: string; active: boolean; sub: string | null }[],
+    rows: { id: string; code: string; title: string; active: boolean; service: string; sub: string | null }[],
     href: (id: string) => string,
   ) =>
     rows.length === 0 ? (
@@ -129,6 +132,7 @@ export async function LibraryPage() {
             <Link href={href(r.id)} className="flex min-h-11 flex-wrap items-center gap-2 px-4 py-3 text-sm hover:bg-tint">
               <span className="font-semibold text-ink">{r.code}</span>
               <span className="flex-1">{r.title}{r.sub && <span className="block text-xs text-muted">{r.sub}</span>}</span>
+              {r.service === "mentoria" && <Badge tone="info">Mentoria</Badge>}
               {!r.active && <Badge>Arquivado</Badge>}
             </Link>
           </li>
@@ -196,7 +200,7 @@ export async function RequestTemplateEditPage({ templateId }: { templateId?: str
             purpose: s("purpose"), minimum_content: s("minimum_content"), examples: s("examples"), instructions: s("instructions"),
             checklist: formatChecklist(t.checklist),
             accepted_formats: Array.isArray(t.accepted_formats) ? (t.accepted_formats as string[]).join(", ") : undefined,
-            active: t.active !== false,
+            active: t.active !== false, service: s("service"),
           } : {}}
         />
       </Card>
@@ -231,7 +235,7 @@ export async function ActionTemplateEditPage({ templateId }: { templateId?: stri
             code: s("code"), kind: s("kind"), title: s("title"), rationale: s("rationale"), area: s("area"), how: s("how"),
             priority: s("priority"), decision_inputs: s("decision_inputs"), resources: s("resources"),
             expected_evidence: s("expected_evidence"), completion_criteria: s("completion_criteria"), basis: s("basis"),
-            active: t.active !== false,
+            active: t.active !== false, service: s("service"),
           } : {}}
         />
       </Card>

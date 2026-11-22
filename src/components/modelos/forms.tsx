@@ -34,10 +34,22 @@ function Field({ label, name, hint, children }: { label: string; name: string; h
   );
 }
 
+/** Para qual serviço o modelo serve (só na biblioteca). */
+function ServiceField({ value }: { value?: string }) {
+  return (
+    <Field label="Serve para" name="service" hint="Projetos do tipo Mentoria só mostram os modelos de mentoria.">
+      <select id="service" name="service" defaultValue={value === "mentoria" ? "mentoria" : "empresa"} className={inputClass}>
+        <option value="empresa">Consultoria para empresas</option>
+        <option value="mentoria">Mentoria</option>
+      </select>
+    </Field>
+  );
+}
+
 export type RequestDefaults = Partial<Record<
   "code" | "title" | "category" | "stage" | "description" | "purpose" | "minimum_content" | "examples" | "instructions" | "checklist" | "accepted_formats" | "owner_label" | "due_on",
   string
->> & { internal?: boolean; active?: boolean };
+>> & { internal?: boolean; active?: boolean; service?: string };
 
 /** Formulário de pedido (no projeto) ou de modelo de pedido (na biblioteca). */
 export function RequestForm({
@@ -61,6 +73,7 @@ export function RequestForm({
       {requestId && <input type="hidden" name="requestId" value={requestId} />}
       {templateId && <input type="hidden" name="templateId" value={templateId} />}
 
+      {mode === "modelo" && <ServiceField value={defaults.service} />}
       <fieldset className="grid gap-4 sm:grid-cols-[140px_1fr]">
         <legend className="mb-2 font-semibold text-plum">Identificação</legend>
         <Field label="Código" name="code" hint={projectId && !requestId ? "Em branco, o sistema numera (PI-17…)" : "Ex.: PI-17"}>
@@ -138,7 +151,7 @@ export function RequestForm({
 export type ActionTemplateDefaults = Partial<Record<
   "code" | "kind" | "title" | "rationale" | "area" | "how" | "priority" | "decision_inputs" | "resources" | "expected_evidence" | "completion_criteria" | "basis",
   string
->> & { active?: boolean };
+>> & { active?: boolean; service?: string };
 
 export function ActionTemplateForm({ templateId, defaults }: { templateId?: string; defaults: ActionTemplateDefaults }) {
   const [state, action] = useActionState(saveActionTemplate, undefined);
@@ -152,6 +165,7 @@ export function ActionTemplateForm({ templateId, defaults }: { templateId?: stri
     <form action={action} className="space-y-6">
       <Feedback state={state} />
       {templateId && <input type="hidden" name="templateId" value={templateId} />}
+      <ServiceField value={defaults.service} />
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Código" name="code" hint="Ex.: AP-40">
           <input id="code" name="code" required maxLength={20} defaultValue={v("code")} className={inputClass} />

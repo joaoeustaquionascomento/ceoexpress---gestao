@@ -38,9 +38,9 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     // A biblioteca genérica já tem os mesmos códigos: a importação não sobrescreve.
     expect(r.requests).toBe(0);
     expect(r.actions).toBe(0);
-    const t1 = await t.db.query("select title from request_templates where code = 'PI-01'");
+    const t1 = await t.db.query("select title from request_templates where code = 'PI-01' and service = 'empresa'");
     expect(t1.rows[0].title).not.toMatch(/FIQ/);
-    await t.db.query("delete from request_templates where code = 'PI-16'");
+    await t.db.query("delete from request_templates where code = 'PI-16' and service = 'empresa'");
     const again = await t.as<{ requests: number }>(u.admin, "select * from import_templates_from_project($1)", [FIQ]);
     expect(again[0].requests).toBe(1);
     const cols = await t.db.query("select column_name from information_schema.columns where table_name = 'request_templates'");
@@ -48,7 +48,7 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
   });
 
   it("só a consultoria lê a biblioteca e só o admin altera", async () => {
-    expect((await t.as(u.consultor, "select id from request_templates")).length).toBe(16);
+    expect((await t.as(u.consultor, "select id from request_templates where service = 'empresa'")).length).toBe(16);
     expect(await t.as(u.gestor, "select id from request_templates")).toHaveLength(0);
     await expect(t.as(u.consultor, "select * from import_templates_from_project($1)", [FIQ])).rejects.toThrow(/administrador/);
     const upd = await t.as(u.consultor, "update request_templates set title = 'x' returning id");
@@ -60,7 +60,7 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     await t.as(
       u.consultor,
       `insert into info_requests (project_id, company_id, code, title, category, checklist, accepted_formats)
-       select $1, $2, code, title, category, checklist, accepted_formats from request_templates where code in ('PI-01','PI-02')`,
+       select $1, $2, code, title, category, checklist, accepted_formats from request_templates where service = 'empresa' and code in ('PI-01','PI-02')`,
       [p, c],
     );
     const reqs = await t.as<{ id: string; code: string }>(u.gestor, "select id, code from info_requests where project_id = $1 order by code", [p]);
@@ -92,6 +92,17 @@ describe.skipIf(!ADMIN_URL)("banco: modelos e exclusão", () => {
     await t.as(u.consultor, "delete from action_items where id = $1", [x.id]);
   });
 
+  it("mentoria tem modelos próprios, com os mesmos códigos sem conflito", async () => {
+    const r = await t.db.query("select count(*)::int n from request_templates where service = 'mentoria'");
+    const a = await t.db.query("select count(*)::int n from action_templates where service = 'mentoria'");
+    expect(r.rows[0].n).toBe(7);
+    expect(a.rows[0].n).toBe(11);
+    const pi01 = await t.db.query("select service from request_templates where code = 'PI-01' order by service");
+    expect(pi01.rows.map((x) => x.service)).toEqual(["empresa", "mentoria"]);
+    await expect(t.db.query("insert into request_templates (service, code, title) values ('mentoria','PI-01','x')")).rejects.toThrow();
+    await expect(t.db.query("insert into request_templates (service, code, title) values ('outro','PI-99','x')")).rejects.toThrow();
+  });
+
   it("excluir o projeto inteiro continua funcionando", async () => {
     await t.db.query("delete from projects where id = $1", [p]);
     const n = await t.db.query("select count(*)::int n from info_requests where project_id = $1", [p]);
@@ -103,8 +114,8 @@ describe.skipIf(!ADMIN_URL)("banco: biblioteca genérica", () => {
   it("os modelos não citam cliente, pessoas nem datas específicas", async () => {
     const t = await createTestDb("ceo_modgen");
     try {
-      const r = await t.db.query("select count(*)::int n from request_templates");
-      const a = await t.db.query("select count(*)::int n from action_templates");
+      const r = await t.db.query("select count(*)::int n from request_templates where service = 'empresa'");
+      const a = await t.db.query("select count(*)::int n from action_templates where service = 'empresa'");
       expect(r.rows[0].n).toBe(16);
       expect(a.rows[0].n).toBe(30);
       const codes = await t.db.query(
