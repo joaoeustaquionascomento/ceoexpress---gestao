@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ProjectSettings } from "@/components/project-settings";
 import { ProjectView } from "@/components/project-view";
 import { BackLink, PageTitle } from "@/components/ui";
 import { getProject } from "@/lib/queries";
@@ -16,6 +17,7 @@ export default async function ProjetoPage({ params }: { params: Promise<{ id: st
         {data.project.description}
       </PageTitle>
       <ProjectView data={data} audience="staff" basePath={`/admin/projetos/${id}`} />
+      <ProjectSettings project={data.project} />
     </>
   );
 }
