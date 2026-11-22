@@ -204,3 +204,28 @@ revisados e compartilhados. Serve para decidir quando vale ligar a análise com 
 **Análise com IA (opcional, desligada)**: quando a chave `ANTHROPIC_API_KEY` for cadastrada na Vercel, aparece
 o botão **Analisar com IA** ao lado de **Gerar relatório**. A IA escreve um texto mais elaborado a partir dos
 mesmos dados (sem nomes de pessoas), com custo por uso, e o rascunho passa pela mesma revisão.
+
+## Mentoria (avaliações próprias)
+
+Seis avaliações próprias da CEOEXPRESS: Roda da Vida, Inteligência Emocional na Liderança, Barreiras à Mudança, Armadilhas da Decisão, Perfil Empreendedor e Mente a Favor. O relatório sai automático, por regras (sem IA).
+
+**Cadastrar um mentorado sem empresa**
+1. Menu **Empresas** → em **Novo cadastro**, escolha **Tipo: Pessoa física** e preencha o nome (CNPJ fica em branco).
+2. Menu **Projetos** → crie o projeto com **Tipo: Mentoria**.
+3. Convide o mentorado para o projeto (se quiser que ele veja os relatórios no app).
+
+**Enviar avaliações**
+1. Abra o projeto → botão **Mentoria**.
+2. No quadro **Enviar avaliações**, marque as avaliações, confira nome e e-mail e clique em **Gerar links**.
+3. Copie a mensagem pronta e mande por WhatsApp ou e-mail. O link funciona sem login, pelo celular, e vale 30 dias. Antes de responder, o mentorado aceita o termo de uso das respostas (LGPD).
+
+**Revisar e liberar**
+1. Quando a avaliação aparecer como **Respondido**, clique nela para ver o relatório (radar, notas, leitura, perguntas, sugestões e livros/filmes).
+2. Escreva o **Comentário do mentor**, escolha a **Conta do mentorado no app** e marque **Liberar**. Só o próprio mentorado vê; o gestor da empresa não vê.
+3. **Imprimir** gera o PDF.
+
+**Histórico e comparação**: cada nova aplicação da mesma avaliação para a mesma pessoa é comparada com a anterior (linha tracejada no radar e +/– em cada nota). Para trazer notas antigas de outra ferramenta, use **Trazer notas antigas**. Para testes de fora (livro, outra plataforma), use **Registrar teste externo**.
+
+**Biblioteca**: menu **Biblioteca** (só administrador). Inclua, edite ou desative livros e filmes e marque os temas em que cada um aparece nas sugestões dos relatórios.
+
+Observação: os links usam o endereço configurado em `NEXT_PUBLIC_SITE_URL` (deve ser `https://app.ceoexpress.com.br`).

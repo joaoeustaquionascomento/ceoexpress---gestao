@@ -1,0 +1,186 @@
+import type { Instrument } from "../tipos";
+
+export const perfilEmpreendedor: Instrument = {
+  id: "perfil_empreendedor",
+  version: 1,
+  name: "Perfil Empreendedor",
+  summary: "Comportamentos de quem conduz e faz crescer um negócio.",
+  intro:
+    "Esta avaliação olha para comportamentos que costumam aparecer em quem conduz um negócio: tomar a frente, persistir, planejar, influenciar. Não é um teste de aptidão: todos esses comportamentos podem ser desenvolvidos.",
+  instruction: "Com que frequência cada frase descreve o seu jeito de trabalhar?",
+  scale: "freq",
+  polarity: "competencia",
+  minutes: 8,
+  dimensions: [
+    {
+      id: "iniciativa",
+      label: "Iniciativa",
+      description: "Agir antes de ser pedido ou de ser forçado pelas circunstâncias.",
+      items: [
+        { id: "pe01", text: "Tomo a frente de problemas antes que alguém me peça." },
+        { id: "pe02", text: "Espero as coisas ficarem mais claras antes de começar a agir.", reverse: true },
+        { id: "pe03", text: "Proponho melhorias mesmo quando o que existe já funciona." },
+      ],
+      high: "Você age antes de ser pedido. Essa iniciativa é o ponto de partida de quase toda mudança no negócio.",
+      low: "A ação parece depender de pedidos ou de urgências. Vale treinar o hábito de dar o primeiro passo.",
+      questions: [
+        "Que melhoria você enxerga hoje e ainda não propôs?",
+        "O que te faz esperar antes de agir?",
+      ],
+      action: "Escolher uma melhoria que depende só de você e colocá-la em prática nos próximos 7 dias.",
+    },
+    {
+      id: "persistencia",
+      label: "Persistência",
+      description: "Continuar diante de obstáculos, ajustando o caminho sem desistir do objetivo.",
+      items: [
+        { id: "pe04", text: "Quando um plano dá errado, ajusto e tento de outro jeito." },
+        { id: "pe05", text: "Abandono projetos quando aparecem os primeiros obstáculos sérios.", reverse: true },
+        { id: "pe06", text: "Mantenho o esforço em objetivos de longo prazo, mesmo sem resultado imediato." },
+      ],
+      high: "Você sustenta o esforço diante de obstáculos. O cuidado é distinguir persistência de teimosia: ajustar o caminho também é persistir.",
+      low: "Os obstáculos parecem interromper os projetos cedo. Resultados de negócio costumam exigir mais tentativas do que imaginamos.",
+      questions: [
+        "Que projeto você abandonou e hoje acha que valeria retomar?",
+        "Como você diferencia persistência de teimosia?",
+      ],
+      action: "Para o objetivo mais importante do trimestre, listar os três maiores obstáculos e uma resposta para cada.",
+    },
+    {
+      id: "oportunidades",
+      label: "Busca de oportunidades",
+      description: "Perceber necessidades do mercado e transformá-las em negócio.",
+      items: [
+        { id: "pe07", text: "Percebo necessidades de clientes que ainda não estão sendo atendidas." },
+        { id: "pe08", text: "Converso com clientes para entender o que eles valorizam e o que os incomoda." },
+        { id: "pe09", text: "Fico tão envolvido na operação que não sobra tempo para olhar o mercado.", reverse: true },
+      ],
+      high: "Você enxerga oportunidades e ouve o cliente. É o que mantém o negócio relevante.",
+      low: "O olhar para o mercado está ficando em segundo plano. A operação pode estar ocupando o espaço da estratégia.",
+      questions: [
+        "O que seus melhores clientes pedem que você ainda não oferece?",
+        "Quando foi a última conversa com um cliente só para ouvir?",
+      ],
+      action: "Conversar com dois clientes nas próximas duas semanas com uma única pergunta: o que faria você comprar mais de nós?",
+    },
+    {
+      id: "risco_calculado",
+      label: "Risco calculado",
+      description: "Assumir riscos moderados depois de avaliar alternativas e consequências.",
+      items: [
+        { id: "pe10", text: "Antes de arriscar, comparo alternativas e penso em como reduzir o risco." },
+        { id: "pe11", text: "Evito qualquer decisão que tenha chance de dar errado.", reverse: true },
+        { id: "pe12", text: "Testo ideias em pequena escala antes de investir pesado." },
+      ],
+      high: "Você assume riscos com método. Testar em pequena escala é uma das melhores proteções de um empreendedor.",
+      low: "O risco parece ser evitado ou assumido sem método. Vale criar um jeito simples de testar antes de apostar alto.",
+      questions: [
+        "Que ideia você poderia testar em pequena escala neste mês?",
+        "Qual risco você está evitando e talvez devesse assumir?",
+      ],
+      action: "Desenhar um teste pequeno (prazo, custo máximo e critério de sucesso) para uma ideia em análise.",
+    },
+    {
+      id: "qualidade",
+      label: "Exigência de qualidade",
+      description: "Buscar fazer melhor, mais rápido ou mais barato, com padrões claros.",
+      items: [
+        { id: "pe13", text: "Defino padrões claros do que é um trabalho bem feito." },
+        { id: "pe14", text: "Aceito entregas abaixo do padrão para não criar conflito.", reverse: true },
+        { id: "pe15", text: "Procuro, de forma constante, jeitos de fazer melhor com menos recurso." },
+      ],
+      high: "Você tem padrão alto e busca melhorar sempre. Deixar esse padrão escrito ajuda a equipe a chegar nele sem depender de você.",
+      low: "O padrão de qualidade parece pouco definido ou pouco cobrado. Sem padrão claro, a equipe não sabe onde mirar.",
+      questions: [
+        "Como a equipe sabe o que é um trabalho bem feito?",
+        "Que entrega abaixo do padrão você aceitou recentemente, e por quê?",
+      ],
+      action: "Escrever o padrão de qualidade de uma entrega-chave e combinar com a equipe como ele será conferido.",
+    },
+    {
+      id: "metas",
+      label: "Metas claras",
+      description: "Definir objetivos específicos, mensuráveis e com prazo.",
+      items: [
+        { id: "pe16", text: "Tenho metas escritas, com número e prazo, para os próximos meses." },
+        { id: "pe17", text: "Meus objetivos são mais desejos gerais do que metas que posso medir.", reverse: true },
+        { id: "pe18", text: "Divido metas grandes em etapas menores com data." },
+      ],
+      high: "Você trabalha com metas claras. Isso facilita priorizar, delegar e medir o avanço.",
+      low: "As metas ainda estão mais para intenções do que para compromissos mensuráveis. Sem número e prazo, fica difícil saber se está avançando.",
+      questions: [
+        "Qual é a meta mais importante dos próximos 90 dias, com número e prazo?",
+        "Como você vai acompanhar essa meta toda semana?",
+      ],
+      action: "Escrever até três metas para os próximos 90 dias, cada uma com número, prazo e responsável.",
+    },
+    {
+      id: "planejamento",
+      label: "Planejamento e acompanhamento",
+      description: "Planejar as etapas e acompanhar a execução com regularidade.",
+      items: [
+        { id: "pe19", text: "Reviso toda semana o andamento das prioridades e ajusto o plano." },
+        { id: "pe20", text: "Uso números e registros para acompanhar como o negócio está indo." },
+        { id: "pe21", text: "Planejo pouco e resolvo as coisas conforme elas aparecem.", reverse: true },
+      ],
+      high: "Você planeja e acompanha com regularidade. Esse ritmo transforma intenção em resultado.",
+      low: "O dia a dia parece ser conduzido pelo que aparece. Um ritual curto de revisão semanal costuma mudar muito esse quadro.",
+      questions: [
+        "Em que momento da semana você olha para o plano?",
+        "Quais três números você precisaria acompanhar toda semana?",
+      ],
+      action: "Criar um ritual de 30 minutos na sexta-feira para revisar prioridades, números e próximos passos.",
+    },
+    {
+      id: "informacao",
+      label: "Busca de informação",
+      description: "Procurar dados, especialistas e referências antes de decidir.",
+      items: [
+        { id: "pe22", text: "Procuro especialistas ou pessoas mais experientes antes de decisões importantes." },
+        { id: "pe23", text: "Pesquiso concorrentes, fornecedores e tendências do meu mercado." },
+        { id: "pe24", text: "Decido rápido, com a informação que tenho na hora.", reverse: true },
+      ],
+      high: "Você se informa antes de decidir. Isso reduz erros caros e abre alternativas.",
+      low: "As decisões parecem ser tomadas com pouca informação. Uma pesquisa curta costuma evitar erros caros.",
+      questions: [
+        "Que informação teria mudado uma decisão recente?",
+        "Quem você poderia consultar sobre o principal desafio atual?",
+      ],
+      action: "Para o desafio principal, conversar com duas pessoas que já passaram por algo parecido.",
+    },
+    {
+      id: "influencia",
+      label: "Influência e rede",
+      description: "Convencer, negociar e construir relações que abrem portas.",
+      items: [
+        { id: "pe25", text: "Consigo convencer pessoas importantes a apoiar minhas ideias." },
+        { id: "pe26", text: "Cultivo uma rede de contatos que me ajuda nos negócios." },
+        { id: "pe27", text: "Evito negociar e aceito as condições que me oferecem.", reverse: true },
+      ],
+      high: "Você influencia e mantém uma rede ativa. Isso abre portas que esforço sozinho não abre.",
+      low: "A rede e a capacidade de negociar parecem pouco usadas. Muitas oportunidades chegam por pessoas, não por anúncios.",
+      questions: [
+        "Quem poderia abrir uma porta importante para o seu negócio?",
+        "Que negociação você aceitou sem tentar melhorar as condições?",
+      ],
+      action: "Listar cinco contatos estratégicos e marcar uma conversa com pelo menos dois neste mês.",
+    },
+    {
+      id: "autoconfianca",
+      label: "Autoconfiança",
+      description: "Confiar na própria capacidade e sustentar decisões diante de dúvidas.",
+      items: [
+        { id: "pe28", text: "Confio na minha capacidade de resolver desafios difíceis." },
+        { id: "pe29", text: "Mantenho minhas decisões mesmo quando sou questionado, se tenho bons motivos." },
+        { id: "pe30", text: "Duvido de mim a ponto de travar decisões.", reverse: true },
+      ],
+      high: "Você confia em si e sustenta decisões. Combinada com escuta, essa confiança inspira a equipe.",
+      low: "A dúvida sobre a própria capacidade está pesando nas decisões. Olhar para conquistas passadas ajuda a recalibrar essa percepção.",
+      questions: [
+        "Qual desafio difícil você já superou e costuma esquecer?",
+        "Em que decisão a dúvida está travando você agora?",
+      ],
+      action: "Listar cinco desafios que você superou nos últimos anos e o que cada um mostra sobre a sua capacidade.",
+    },
+  ],
+};
