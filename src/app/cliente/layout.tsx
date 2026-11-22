@@ -5,7 +5,7 @@ export default async function ClienteLayout({ children }: { children: React.Reac
   const user = await requireRole("client");
   return (
     <AppShell area="Área do Cliente" user={user}
-      notificationsHref="/cliente/notificacoes" nav={[{ href: "/cliente", label: "Início" }]}>
+      notificationsHref="/cliente/notificacoes" nav={[{ href: "/cliente", label: "Início" }, { href: "/cliente/contratos", label: "Contratos" }]}>
       {children}
     </AppShell>
   );
