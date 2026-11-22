@@ -226,6 +226,8 @@ Seis avaliações próprias da CEOEXPRESS: Roda da Vida, Inteligência Emocional
 
 **Histórico e comparação**: cada nova aplicação da mesma avaliação para a mesma pessoa é comparada com a anterior (linha tracejada no radar e +/– em cada nota). Para trazer notas antigas de outra ferramenta, use **Trazer notas antigas**. Para testes de fora (livro, outra plataforma), use **Registrar teste externo**.
 
+**Modelos de mentoria**: em projetos do tipo Mentoria, a tela "Adicionar pedidos e ações dos modelos" mostra só os modelos de mentoria (7 pedidos e 11 ações prontos). Em **Modelos**, cada modelo tem o campo **Serve para** (Consultoria para empresas ou Mentoria).
+
 **Biblioteca**: menu **Biblioteca** (só administrador). Inclua, edite ou desative livros e filmes e marque os temas em que cada um aparece nas sugestões dos relatórios.
 
 Observação: os links usam o endereço configurado em `NEXT_PUBLIC_SITE_URL` (deve ser `https://app.ceoexpress.com.br`).
