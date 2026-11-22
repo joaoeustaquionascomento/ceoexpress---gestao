@@ -139,6 +139,11 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
             <Link href={`${basePath}/relatorios`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
               Relatórios
             </Link>
+            {(audience === "staff" || /mentoria/i.test(data.project?.kind ?? "")) && (
+              <Link href={`${basePath}/mentoria`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+                Mentoria
+              </Link>
+            )}
             <Link href={`${basePath}/plano`} className="inline-flex min-h-11 items-center rounded-lg bg-plum px-4 text-sm font-semibold text-white hover:bg-mauve">
               Abrir plano: lista, Kanban e calendário
             </Link>

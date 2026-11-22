@@ -42,7 +42,7 @@ export default async function ProjetosPage() {
               </select>
             </div>
             <div className="space-y-1"><label className={labelClass} htmlFor="name">Nome do projeto</label><input id="name" name="name" required className={inputClass} /></div>
-            <div className="space-y-1"><label className={labelClass} htmlFor="kind">Tipo de serviço</label><input id="kind" name="kind" placeholder="Ex.: Reestruturação" className={inputClass} /></div>
+            <div className="space-y-1"><label className={labelClass} htmlFor="kind">Tipo de serviço</label><input id="kind" name="kind" list="kinds" placeholder="Ex.: Reestruturação ou Mentoria" className={inputClass} /><datalist id="kinds"><option value="Mentoria" /><option value="Reestruturação" /><option value="Gestão estratégica" /></datalist><p className="text-xs text-muted">Use &quot;Mentoria&quot; para liberar as avaliações e relatórios de mentoria para o mentorado.</p></div>
             <div className="space-y-1"><label className={labelClass} htmlFor="starts_on">Início</label><input id="starts_on" name="starts_on" type="date" className={inputClass} /></div>
           </ActionForm>
         </Card>

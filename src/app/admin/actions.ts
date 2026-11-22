@@ -19,7 +19,8 @@ const company = z.object({
     .transform((v) => normalizeCnpj(v))
     .refine((v) => v !== "invalido", "O CNPJ precisa ter 14 números. Pode deixar em branco."),
   segment: z.string().trim().max(120, "Segmento muito longo (máximo 120 caracteres).").optional().transform((v) => v || null),
-});
+  person_kind: z.enum(["pj", "pf"]).default("pj"),
+}).refine((c) => c.person_kind === "pj" || !c.cnpj, { message: "Pessoa física não tem CNPJ. Deixe o campo em branco." });
 
 export async function createCompany(_: AdminState, form: FormData): Promise<AdminState> {
   const user = await requireRole("admin");
