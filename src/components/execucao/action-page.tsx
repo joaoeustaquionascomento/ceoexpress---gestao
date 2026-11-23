@@ -54,6 +54,7 @@ export async function ActionPage({ area, params }: { area: Area; params: Promise
           <Badge tone={statusTone(a.status)}>{ACTION_STATUS[a.status]}</Badge>
           <Badge tone={PRIORITY[a.priority]?.tone}>Prioridade {PRIORITY[a.priority]?.label.toLowerCase()}</Badge>
           {isOverdue(a) && <Badge tone="bad">Atrasada</Badge>}
+          {a.side ? <Badge tone="neutral">Próximo passo {a.side === "cliente" ? "do cliente" : "da consultoria"}</Badge> : null}
           {a.visibility === "internal" && <Badge tone="warn">Interna</Badge>}
           {a.objective && <Badge tone="info">{a.objective.code} · {a.objective.name}</Badge>}
         </span>
@@ -211,7 +212,7 @@ export async function ActionEditPage({
   const defaults: Record<string, string | null> & { depends_on?: string[] } = a
     ? Object.fromEntries(
         [
-          "code", "kind", "objective_id", "title", "rationale", "area", "how", "priority", "executor_id", "owner_label",
+          "code", "kind", "objective_id", "title", "rationale", "area", "how", "priority", "executor_id", "owner_label", "side",
           "approver_id", "decision_inputs", "starts_on", "due_on", "resources", "expected_evidence", "completion_criteria",
           "dependency_note", "visibility",
         ].map((k) => [k, (a[k] as string | null) ?? null]),

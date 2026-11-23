@@ -3,7 +3,7 @@ import { Badge, Card, EmptyState, ExportLinks, Stat } from "@/components/ui";
 import { ACTION_STATUS, REQUEST_STATUS, formatDate, progress } from "@/lib/status";
 import type { getProject, RequestRow } from "@/lib/queries";
 
-const DECISION_KIND: Record<string, string> = { decisao: "Decisão", lacuna: "Lacuna", hipotese: "Hipótese", premissa: "Premissa" };
+const DECISION_KIND: Record<string, string> = { decisao: "Decisão", lacuna: "Lacuna", hipotese: "Hipótese", premissa: "Premissa", proposta: "Proposta para avaliar", alinhamento: "Alinhamento" };
 
 type Data = NonNullable<Awaited<ReturnType<typeof getProject>>>;
 
