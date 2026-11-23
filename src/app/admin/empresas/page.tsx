@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ActionForm } from "@/components/action-form";
 import { Badge, Card, EmptyState, PageTitle, inputClass, labelClass } from "@/components/ui";
 import { formatCnpj } from "@/lib/cnpj";
@@ -23,6 +24,9 @@ export default async function EmpresasPage() {
                 <p className="flex flex-wrap items-center gap-2 font-semibold text-plum">
                   {c.trade_name}
                   {c.person_kind === "pf" && <Badge tone="info">Pessoa física</Badge>}
+                  <Link href={`/admin/empresas/${c.id}`} className="ml-auto inline-flex min-h-11 items-center rounded-lg border border-line px-3 text-sm font-semibold text-mauve hover:bg-tint">
+                    Editar dados
+                  </Link>
                 </p>
                 <p className="text-sm text-muted">
                   {c.legal_name}

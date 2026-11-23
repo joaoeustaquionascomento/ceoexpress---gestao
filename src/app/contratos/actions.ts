@@ -13,6 +13,7 @@ import {
   montarTexto,
   valoresDosCampos,
 } from "@/lib/contratos/dados";
+import { COMPANY_FIELDS, completarCadastro, type CompanyRecord } from "@/lib/contratos/cliente";
 import { contractPdf } from "@/lib/contratos/pdf";
 import { getContract, getSettings } from "@/lib/contratos/servidor";
 import { createClient } from "@/lib/supabase/server";
@@ -135,6 +136,17 @@ async function nextContractCode(supabase: Awaited<ReturnType<typeof createClient
   return `CT-${year}-${String(max + 1).padStart(3, "0")}`;
 }
 
+/** Completa no cadastro do cliente o que estava vazio (nunca sobrescreve). */
+async function syncCompany(supabase: Awaited<ReturnType<typeof createClient>>, companyId: string, data: ReturnType<typeof dataFrom>) {
+  const { data: c } = await supabase.from("companies").select(COMPANY_FIELDS).eq("id", companyId).maybeSingle();
+  if (!c) return;
+  const patch = completarCadastro(c as CompanyRecord, data);
+  if (!Object.keys(patch).length) return;
+  const { error } = await supabase.from("companies").update(patch).eq("id", companyId);
+  if (error) console.error("syncCompany", error.code, error.message);
+  else revalidatePath("/admin/empresas", "layout");
+}
+
 export async function saveContract(_: FormResult, form: FormData): Promise<FormResult> {
   const supabase = await admin();
   const user = await requireRole("admin");
@@ -151,6 +163,8 @@ export async function saveContract(_: FormResult, form: FormData): Promise<FormR
     company_id: companyId.success ? companyId.data : null,
     template_id: templateId.success ? templateId.data : null,
   };
+
+  if (row.company_id) await syncCompany(supabase, row.company_id, data);
 
   const id = uuid.safeParse(form.get("contractId"));
   if (id.success) {

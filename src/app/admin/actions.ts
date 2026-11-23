@@ -37,6 +37,45 @@ export async function createCompany(_: AdminState, form: FormData): Promise<Admi
   return { ok: `Empresa ${parsed.data.trade_name} cadastrada.` };
 }
 
+const optional = (max: number, msg: string) => z.string().trim().max(max, msg).optional().transform((v) => v || null);
+
+/** Dados de qualificação usados nos contratos (todos opcionais). */
+const companyDetails = z.object({
+  cpf: optional(20, "CPF muito longo."),
+  qualification_extra: optional(300, "Texto muito longo (máximo 300 caracteres)."),
+  address: optional(400, "Endereço muito longo (máximo 400 caracteres)."),
+  email: optional(200, "E-mail muito longo.").refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Confira o e-mail."),
+  phone: optional(40, "Telefone muito longo."),
+  rep_name: optional(200, "Nome do representante muito longo."),
+  rep_role: optional(100, "Cargo muito longo."),
+  rep_cpf: optional(20, "CPF do representante muito longo."),
+});
+
+export async function updateCompany(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireRole("admin");
+  const id = z.string().uuid().safeParse(form.get("companyId"));
+  if (!id.success) return { error: "Cadastro não encontrado." };
+  const base = company.safeParse(Object.fromEntries(form));
+  if (!base.success) return { error: base.error.issues[0]?.message ?? "Confira os campos." };
+  const details = companyDetails.safeParse(Object.fromEntries(form));
+  if (!details.success) return { error: details.error.issues[0]?.message ?? "Confira os campos." };
+  const pf = base.data.person_kind === "pf";
+  const row = {
+    ...base.data,
+    ...details.data,
+    // Cada tipo guarda só o que é dele.
+    ...(pf ? { rep_name: null, rep_role: null, rep_cpf: null } : { cpf: null, qualification_extra: null }),
+  };
+  const supabase = await createClient();
+  const { error } = await supabase.from("companies").update(row).eq("id", id.data);
+  if (error) {
+    console.error("updateCompany", error.code, error.message);
+    return { error: error.code === "23505" ? "Já existe uma empresa com este CNPJ." : `Não foi possível salvar (código ${error.code ?? "?"}).` };
+  }
+  revalidatePath("/admin/empresas", "layout");
+  return { ok: "Cadastro atualizado. Os próximos contratos já vêm com estes dados." };
+}
+
 const project = z.object({
   company_id: z.string().uuid(),
   name: z.string().trim().min(2).max(200),
