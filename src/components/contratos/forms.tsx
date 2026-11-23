@@ -102,7 +102,8 @@ export function SettingsForm({ defaults }: { defaults: ProviderSettings }) {
 // ---------------------------------------------------------------------------
 // Modelos
 // ---------------------------------------------------------------------------
-export function TemplateForm({ templateId, defaults }: { templateId?: string; defaults: { title?: string; description?: string; body?: string; active?: boolean } }) {
+export function TemplateForm({ templateId, defaults }: { templateId?: string; defaults: { title?: string; description?: string; body?: string; active?: boolean; sugestoes?: Record<string, unknown> } }) {
+  const sg = (k: string) => (defaults.sugestoes?.[k] === undefined || defaults.sugestoes?.[k] === null ? "" : String(defaults.sugestoes[k]));
   const [state, action] = useActionState(saveTemplate, undefined);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const insert = (key: string) => {
@@ -157,6 +158,32 @@ export function TemplateForm({ templateId, defaults }: { templateId?: string; de
           </div>
         </aside>
       </div>
+      <details className="rounded-lg border border-line p-4" open={!templateId}>
+        <summary className="cursor-pointer font-semibold text-mauve">Textos e valores sugeridos (vêm preenchidos em cada contrato novo, e dá para mudar em cada um)</summary>
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Nome do serviço" name="def_servico"><input id="def_servico" name="def_servico" maxLength={200} defaultValue={sg("servico")} className={inputClass} /></Field>
+            <Field label="Duração / vigência" name="def_duracao"><input id="def_duracao" name="def_duracao" maxLength={200} defaultValue={sg("duracao")} className={inputClass} /></Field>
+            <Field label="Dedicação" name="def_dedicacao"><input id="def_dedicacao" name="def_dedicacao" maxLength={300} defaultValue={sg("dedicacao")} className={inputClass} /></Field>
+            <Field label="Forma de pagamento" name="def_forma_pagamento" hint="Em branco, usa a dos dados da contratada."><input id="def_forma_pagamento" name="def_forma_pagamento" maxLength={600} defaultValue={sg("forma_pagamento")} className={inputClass} /></Field>
+          </div>
+          {([["preambulo", "Introdução / considerandos", 5], ["objeto", "Objeto", 3], ["escopo", "Escopo", 12], ["honorarios", "Honorários", 4], ["condicoes_especiais", "Condições específicas", 8]] as const).map(([k, label, rows]) => (
+            <Field key={k} label={label} name={`def_${k}`} hint={k === "escopo" ? 'Use [PREENCHER: o quê] nos trechos que mudam a cada cliente: o PDF só sai depois que forem completados.' : undefined}>
+              <textarea id={`def_${k}`} name={`def_${k}`} rows={rows} defaultValue={sg(k)} className={`${inputClass} text-sm`} />
+            </Field>
+          ))}
+          <div className="grid gap-4 sm:grid-cols-4">
+            <Field label="Índice de correção" name="def_indice_correcao"><input id="def_indice_correcao" name="def_indice_correcao" maxLength={60} defaultValue={sg("indice_correcao")} className={inputClass} /></Field>
+            <Field label="Multa por descumprimento (%)" name="def_multa_rescisoria"><input id="def_multa_rescisoria" name="def_multa_rescisoria" type="number" step="0.1" min={0} max={100} defaultValue={sg("multa_rescisoria")} className={inputClass} /></Field>
+            <Field label="Prazo para corrigir (dias)" name="def_prazo_cura"><input id="def_prazo_cura" name="def_prazo_cura" type="number" min={0} defaultValue={sg("prazo_cura")} className={inputClass} /></Field>
+            <Field label="Aviso prévio (dias)" name="def_aviso_previo"><input id="def_aviso_previo" name="def_aviso_previo" type="number" min={0} defaultValue={sg("aviso_previo")} className={inputClass} /></Field>
+          </div>
+          <label className="flex min-h-11 items-center gap-3 text-sm">
+            <input type="checkbox" name="def_testemunhas" defaultChecked={defaults.sugestoes?.testemunhas === true} className="h-5 w-5 accent-[var(--plum)]" />
+            Incluir espaço para 2 testemunhas
+          </label>
+        </div>
+      </details>
       <label className="flex min-h-11 items-center gap-3 text-sm">
         <input type="checkbox" name="active" defaultChecked={defaults.active ?? true} className="h-5 w-5 accent-[var(--plum)]" />
         Disponível para novos contratos
@@ -185,7 +212,7 @@ function confirmar(msg: string) {
 // Contrato: formulário de dados
 // ---------------------------------------------------------------------------
 export type CompanyOption = { id: string; legal_name: string; trade_name: string; cnpj: string | null };
-export type TemplateOption = { id: string; title: string };
+export type TemplateOption = { id: string; title: string; description?: string | null; uses: string[] };
 
 export function ContractForm({
   contractId,
@@ -205,7 +232,19 @@ export function ContractForm({
   wasGenerated?: boolean;
 }) {
   const [state, action] = useActionState(saveContract, undefined);
+  const router = useRouter();
   const [tipo, setTipo] = useState<"pf" | "pj">(data.tipo);
+  const [tplId, setTplId] = useState(templateId ?? templates[0]?.id ?? "");
+  const tpl = templates.find((t) => t.id === tplId);
+  const uses = new Set(tpl?.uses ?? []);
+  /** Mostra o campo só se o modelo escolhido usa algum destes campos. */
+  const show = (...keys: string[]) => !tpl || keys.some((k) => uses.has(k));
+  const hide = (...keys: string[]) => (show(...keys) ? "" : "hidden");
+  function onTemplate(id: string) {
+    setTplId(id);
+    // Contrato novo: recarrega com os textos sugeridos do modelo escolhido.
+    if (!contractId) router.push(`/admin/contratos/novo?modelo=${id}`);
+  }
   const formRef = useRef<HTMLFormElement>(null);
   const [calc, setCalc] = useState({ n: "1", primeiro: "" });
   const [calcMsg, setCalcMsg] = useState<string | null>(null);
@@ -250,9 +289,11 @@ export function ContractForm({
         <legend className="mb-2 text-lg font-semibold text-plum">1. Modelo</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Modelo de contrato" name="template_id">
-            <select id="template_id" name="template_id" required defaultValue={templateId ?? templates[0]?.id ?? ""} className={inputClass}>
+            <select id="template_id" name="template_id" required value={tplId} onChange={(e) => onTemplate(e.target.value)} className={inputClass}>
               {templates.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
             </select>
+            {tpl?.description && <p className="text-xs text-muted">{tpl.description}</p>}
+            {!contractId && <p className="text-xs text-muted">Ao trocar de modelo, os textos sugeridos dele são carregados.</p>}
           </Field>
           <Field label="Empresa cliente no app (opcional)" name="company_id" hint="Liga o contrato à empresa, para o cliente poder vê-lo depois de assinado.">
             <select id="company_id" name="company_id" defaultValue={companyId ?? ""} onChange={(e) => onCompany(e.target.value)} className={inputClass}>
@@ -301,26 +342,41 @@ export function ContractForm({
       <fieldset className="space-y-4">
         <legend className="mb-2 text-lg font-semibold text-plum">3. Escopo do trabalho</legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nome do serviço" name="servico" hint="Ex.: Consultoria Estratégica, Mentoria Executiva.">
+          <Field label="Nome do serviço" name="servico" hint="Ex.: Consultoria Estratégica, Mentoria Executiva." className={hide("servico", "servico_maiusculo")}>
             <input id="servico" name="servico" maxLength={200} defaultValue={v("servico")} className={inputClass} />
           </Field>
-          <Field label="Duração prevista" name="duracao" hint='Ex.: "10 (dez) semanas" ou "6 (seis) meses".'>
+          <Field label="Duração / vigência" name="duracao" hint='Ex.: "10 (dez) semanas" ou "12 (doze) meses".' className={hide("duracao")}>
             <input id="duracao" name="duracao" maxLength={200} defaultValue={v("duracao")} className={inputClass} />
           </Field>
         </div>
-        <Field label="Considerandos (opcional)" name="preambulo" hint='Parágrafos que explicam o contexto, cada um começando com "Considerando que…". Linha em branco separa parágrafos.'>
-          <textarea id="preambulo" name="preambulo" rows={4} defaultValue={v("preambulo")} className={inputClass} />
+        <div className={`grid gap-4 sm:grid-cols-2 ${show("data_inicio", "data_inicio_extenso", "data_termino", "data_termino_extenso") ? "" : "hidden"}`}>
+          <Field label="Data de início" name="data_inicio_v" className={hide("data_inicio", "data_inicio_extenso")}>
+            <input id="data_inicio_v" name="data_inicio" type="date" defaultValue={v("data_inicio")} className={inputClass} />
+          </Field>
+          <Field label="Data de término" name="data_termino" className={hide("data_termino", "data_termino_extenso")}>
+            <input id="data_termino" name="data_termino" type="date" defaultValue={v("data_termino")} className={inputClass} />
+          </Field>
+        </div>
+        <Field label="Dedicação" name="dedicacao" hint='Ex.: "até 20 (vinte) horas mensais".' className={hide("dedicacao")}>
+          <input id="dedicacao" name="dedicacao" maxLength={300} defaultValue={v("dedicacao")} className={inputClass} />
         </Field>
-        <Field label="Objeto" name="objeto" hint="Uma ou duas frases sobre o que será prestado.">
+        <Field label="Introdução / considerandos (opcional)" name="preambulo" hint='Parágrafos de contexto, por exemplo "Considerando que…". Linha em branco separa parágrafos.' className={hide("preambulo")}>
+          <textarea id="preambulo" name="preambulo" rows={5} defaultValue={v("preambulo")} className={inputClass} />
+        </Field>
+        <Field label="Objeto" name="objeto" hint="Uma ou duas frases sobre o que será prestado." className={hide("objeto")}>
           <textarea id="objeto" name="objeto" rows={3} defaultValue={v("objeto")} placeholder="O objeto do presente Contrato é a prestação de serviços de …" className={inputClass} />
         </Field>
-        <Field label="Escopo detalhado (Anexo I)" name="escopo" hint='Fases, atividades e entregáveis. Use "## Fase 1" para títulos e "- " no início da linha para itens.'>
-          <textarea id="escopo" name="escopo" rows={10} defaultValue={v("escopo")} className={`${inputClass} text-sm`} />
+        <Field label="Escopo detalhado" name="escopo" hint='Atividades e entregáveis. Use "## Título" para títulos, "- " ou "a) " no início da linha para itens. Trechos [PREENCHER] precisam ser completados.' className={hide("escopo")}>
+          <textarea id="escopo" name="escopo" rows={14} defaultValue={v("escopo")} className={`${inputClass} text-sm`} />
         </Field>
       </fieldset>
 
       <fieldset className="space-y-4">
         <legend className="mb-2 text-lg font-semibold text-plum">4. Valores e pagamento</legend>
+        <Field label="Honorários" name="honorarios" hint="Texto da cláusula de honorários. Complete os trechos [PREENCHER]." className={hide("honorarios")}>
+          <textarea id="honorarios" name="honorarios" rows={5} defaultValue={v("honorarios")} className={inputClass} />
+        </Field>
+        <div className={`space-y-4 ${show("valor_total", "valor_total_extenso", "parcelas") ? "" : "hidden"}`}>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Valor total (R$)" name="valor_total"><input id="valor_total" name="valor_total" inputMode="decimal" maxLength={30} defaultValue={v("valor_total")} placeholder="4.990,00" className={inputClass} /></Field>
           <Field label="Nº de parcelas" name="calc_n"><input id="calc_n" type="number" min={1} max={120} value={calc.n} onChange={(e) => setCalc({ ...calc, n: e.target.value })} className={inputClass} /></Field>
@@ -333,20 +389,23 @@ export function ContractForm({
         <Field label="Parcelas" name="parcelas" hint='Uma por linha: data e valor, ex.: "15/06/2026 1.000,00". A soma precisa bater com o total.'>
           <textarea id="parcelas" name="parcelas" rows={5} defaultValue={v("parcelas")} className={`${inputClass} font-mono text-sm`} />
         </Field>
-        <Field label="Forma de pagamento" name="forma_pagamento">
+        </div>
+        <Field label="Forma de pagamento" name="forma_pagamento" className={hide("forma_pagamento")}>
           <input id="forma_pagamento" name="forma_pagamento" maxLength={600} defaultValue={v("forma_pagamento")} className={inputClass} />
+        </Field>
+        <Field label="Condições específicas" name="condicoes_especiais" hint="Regras só deste contrato (ex.: suspensão excepcional, primeira apuração). Complete os trechos [PREENCHER]." className={hide("condicoes_especiais")}>
+          <textarea id="condicoes_especiais" name="condicoes_especiais" rows={8} defaultValue={v("condicoes_especiais")} className={`${inputClass} text-sm`} />
         </Field>
         <details className="rounded-lg border border-line p-4">
           <summary className="cursor-pointer font-semibold text-mauve">Multas, juros, prazos e sigilo (valores padrão)</summary>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Field label="Multa por atraso (%)" name="multa_atraso"><input id="multa_atraso" name="multa_atraso" type="number" step="0.1" min={0} max={100} defaultValue={v("multa_atraso")} className={inputClass} /></Field>
-            <Field label="Juros ao mês (%)" name="juros_mes"><input id="juros_mes" name="juros_mes" type="number" step="0.1" min={0} max={100} defaultValue={v("juros_mes")} className={inputClass} /></Field>
-            <Field label="Índice de correção" name="indice_correcao"><input id="indice_correcao" name="indice_correcao" maxLength={60} defaultValue={v("indice_correcao")} className={inputClass} /></Field>
-            <Field label="Multa por descumprimento (%)" name="multa_rescisoria"><input id="multa_rescisoria" name="multa_rescisoria" type="number" step="0.1" min={0} max={100} defaultValue={v("multa_rescisoria")} className={inputClass} /></Field>
-            <Field label="Prazo para corrigir (dias)" name="prazo_cura"><input id="prazo_cura" name="prazo_cura" type="number" min={0} defaultValue={v("prazo_cura")} className={inputClass} /></Field>
-            <Field label="Aviso prévio (dias)" name="aviso_previo"><input id="aviso_previo" name="aviso_previo" type="number" min={0} defaultValue={v("aviso_previo")} className={inputClass} /></Field>
-            <Field label="Sigilo após o fim (anos)" name="sigilo_anos"><input id="sigilo_anos" name="sigilo_anos" type="number" min={0} max={50} defaultValue={v("sigilo_anos")} className={inputClass} /></Field>
-            <Field label="Data de início (opcional)" name="data_inicio"><input id="data_inicio" name="data_inicio" type="date" defaultValue={v("data_inicio")} className={inputClass} /></Field>
+            <Field label="Multa por atraso (%)" name="multa_atraso" className={hide("multa_atraso")}><input id="multa_atraso" name="multa_atraso" type="number" step="0.1" min={0} max={100} defaultValue={v("multa_atraso")} className={inputClass} /></Field>
+            <Field label="Juros ao mês (%)" name="juros_mes" className={hide("juros_mes")}><input id="juros_mes" name="juros_mes" type="number" step="0.1" min={0} max={100} defaultValue={v("juros_mes")} className={inputClass} /></Field>
+            <Field label="Índice de correção" name="indice_correcao" className={hide("indice_correcao")}><input id="indice_correcao" name="indice_correcao" maxLength={60} defaultValue={v("indice_correcao")} className={inputClass} /></Field>
+            <Field label="Multa por descumprimento (%)" name="multa_rescisoria" className={hide("multa_rescisoria")}><input id="multa_rescisoria" name="multa_rescisoria" type="number" step="0.1" min={0} max={100} defaultValue={v("multa_rescisoria")} className={inputClass} /></Field>
+            <Field label="Prazo para corrigir (dias)" name="prazo_cura" className={hide("prazo_cura")}><input id="prazo_cura" name="prazo_cura" type="number" min={0} defaultValue={v("prazo_cura")} className={inputClass} /></Field>
+            <Field label="Aviso prévio (dias)" name="aviso_previo" className={hide("aviso_previo")}><input id="aviso_previo" name="aviso_previo" type="number" min={0} defaultValue={v("aviso_previo")} className={inputClass} /></Field>
+            <Field label="Sigilo após o fim (anos)" name="sigilo_anos" className={hide("sigilo_anos")}><input id="sigilo_anos" name="sigilo_anos" type="number" min={0} max={50} defaultValue={v("sigilo_anos")} className={inputClass} /></Field>
           </div>
         </details>
       </fieldset>
@@ -358,7 +417,7 @@ export function ContractForm({
           <Field label="Data" name="data_assinatura"><input id="data_assinatura" name="data_assinatura" type="date" defaultValue={v("data_assinatura")} className={inputClass} /></Field>
           <Field label="Foro" name="foro"><input id="foro" name="foro" maxLength={120} defaultValue={v("foro")} placeholder="Cidade/UF" className={inputClass} /></Field>
         </div>
-        <label className="flex min-h-11 items-center gap-3 text-sm">
+        <label className={`flex min-h-11 items-center gap-3 text-sm ${hide("assinaturas")}`}>
           <input type="checkbox" name="testemunhas" defaultChecked={data.testemunhas} className="h-5 w-5 accent-[var(--plum)]" />
           Incluir espaço para 2 testemunhas
         </label>

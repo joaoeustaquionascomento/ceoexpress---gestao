@@ -17,6 +17,8 @@ import {
 import { ContractPreview } from "@/components/contratos/preview";
 import { Alert, BackLink, Badge, Card, EmptyState, PageTitle } from "@/components/ui";
 import {
+  aplicarSugestoes,
+  camposUsados,
   CONTRACT_STATUS,
   defaultData,
   documentoContratante,
@@ -48,7 +50,7 @@ async function companies(): Promise<CompanyOption[]> {
 
 async function templates(activeOnly: boolean) {
   const supabase = await createClient();
-  let q = supabase.from("contract_templates").select("id, title, description, active").order("sort_order").order("title");
+  let q = supabase.from("contract_templates").select("id, title, description, active, body, defaults").order("sort_order").order("title");
   if (activeOnly) q = q.eq("active", true);
   const { data } = await q;
   return data ?? [];
@@ -107,12 +109,15 @@ export async function ContractsListPage() {
 // ---------------------------------------------------------------------------
 // Novo / editar
 // ---------------------------------------------------------------------------
-export async function ContractEditPage({ contractId }: { contractId?: string }) {
+export async function ContractEditPage({ contractId, modelo }: { contractId?: string; modelo?: string }) {
   if (contractId && !UUID.test(contractId)) notFound();
   const [settings, tpls, comps] = await Promise.all([getSettings(), templates(true), companies()]);
   const c = contractId ? await getContract(contractId) : null;
   if (contractId && !c) notFound();
   if (c && (c.status === "assinado" || c.status === "cancelado")) notFound();
+  // Contrato novo: o modelo escolhido traz os textos sugeridos.
+  const chosen = c ? null : tpls.find((t) => t.id === modelo) ?? tpls[0];
+  const data = c?.data ?? aplicarSugestoes(defaultData(settings, hojeSP()), chosen?.defaults);
   return (
     <>
       <BackLink href={c ? `${BASE}/${c.id}` : BASE} label={c ? "Voltar ao contrato" : "Voltar aos contratos"} />
@@ -124,11 +129,12 @@ export async function ContractEditPage({ contractId }: { contractId?: string }) 
       ) : (
         <Card>
           <ContractForm
+            key={chosen?.id ?? c?.id}
             contractId={c?.id}
-            data={c?.data ?? defaultData(settings, hojeSP())}
-            templateId={c?.template_id}
+            data={data}
+            templateId={c?.template_id ?? chosen?.id}
             companyId={c?.company_id}
-            templates={tpls.map((t) => ({ id: t.id, title: t.title }))}
+            templates={tpls.map((t) => ({ id: t.id, title: t.title, description: t.description, uses: [...camposUsados(t.body + "\n" + Object.values((t.defaults ?? {}) as Record<string, unknown>).filter((v) => typeof v === "string").join("\n"))] }))}
             companies={comps}
             wasGenerated={!!c && c.status !== "rascunho"}
           />
@@ -173,7 +179,7 @@ export async function ContractPage({ contractId }: { contractId: string }) {
   const draft = c.status === "rascunho";
   const live = tpl.data ? montarTexto(tpl.data.body, valoresDosCampos(c.data, settings)) : null;
   const texto = !draft && c.body ? c.body : live?.texto ?? "";
-  const pend = draft ? pendenciasParaGerar(c.data, settings) : [];
+  const pend = draft && tpl.data ? pendenciasParaGerar(c.data, settings, tpl.data.body) : [];
   const generated = !!c.pdf_path && c.status !== "rascunho";
   const editable = c.status !== "assinado" && c.status !== "cancelado";
 
@@ -316,10 +322,10 @@ export async function TemplatesPage() {
 export async function TemplateEditPage({ templateId, copyFrom }: { templateId?: string; copyFrom?: string }) {
   if (templateId && !UUID.test(templateId)) notFound();
   const supabase = await createClient();
-  let t: { title: string; description: string | null; body: string; active: boolean } | null = null;
+  let t: { title: string; description: string | null; body: string; active: boolean; defaults: Record<string, unknown> | null } | null = null;
   const sourceId = templateId ?? (copyFrom && UUID.test(copyFrom) ? copyFrom : undefined);
   if (sourceId) {
-    const { data } = await supabase.from("contract_templates").select("title, description, body, active").eq("id", sourceId).maybeSingle();
+    const { data } = await supabase.from("contract_templates").select("title, description, body, active, defaults").eq("id", sourceId).maybeSingle();
     if (!data && templateId) notFound();
     t = data;
   }
@@ -336,7 +342,7 @@ export async function TemplateEditPage({ templateId, copyFrom }: { templateId?: 
       <Card>
         <TemplateForm
           templateId={templateId}
-          defaults={t ? { title: copying ? `${t.title} (cópia)` : t.title, description: t.description ?? "", body: t.body, active: t.active } : {}}
+          defaults={t ? { title: copying ? `${t.title} (cópia)` : t.title, description: t.description ?? "", body: t.body, active: t.active, sugestoes: t.defaults ?? {} } : {}}
         />
       </Card>
       {templateId && <div className="mt-6"><DeleteTemplateForm templateId={templateId} /></div>}

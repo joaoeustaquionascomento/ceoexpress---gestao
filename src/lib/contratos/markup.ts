@@ -5,6 +5,7 @@
  *   ## Cláusula           título de cláusula
  *   ### Subtítulo         subtítulo
  *   - item                item de lista
+ *   a) item               item com letra (a), b), c)…)
  *   > texto               linha centralizada (ex.: local e data)
  *   ---                   quebra de página (ex.: antes do Anexo I)
  *   [[assinaturas]]       quadro de assinaturas
@@ -19,7 +20,7 @@ export type Block =
   | { kind: "heading"; text: string }
   | { kind: "subheading"; text: string }
   | { kind: "paragraph"; spans: Span[] }
-  | { kind: "bullet"; spans: Span[] }
+  | { kind: "bullet"; spans: Span[]; label?: string }
   | { kind: "center"; spans: Span[] }
   | { kind: "pagebreak" }
   | { kind: "signatures" };
@@ -54,6 +55,7 @@ export function parseBlocks(texto: string): Block[] {
     else if ((m = /^##\s+(.+)$/.exec(line))) { flush(); blocks.push({ kind: "heading", text: plain(m[1]) }); }
     else if ((m = /^#\s+(.+)$/.exec(line))) { flush(); blocks.push({ kind: "title", text: plain(m[1]) }); }
     else if ((m = /^[-•*]\s+(.+)$/.exec(line))) { flush(); blocks.push({ kind: "bullet", spans: spans(m[1]) }); }
+    else if ((m = /^([a-z]\))\s+(.+)$/.exec(line))) { flush(); blocks.push({ kind: "bullet", label: m[1], spans: spans(m[2]) }); }
     else if ((m = /^>\s*(.+)$/.exec(line))) { flush(); blocks.push({ kind: "center", spans: spans(m[1]) }); }
     else para.push(line);
   }

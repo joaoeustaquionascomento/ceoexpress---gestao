@@ -21,7 +21,7 @@ export function ContractPreview({ texto, sig }: { texto: string; sig: Signatorie
           case "heading": return <h3 key={i} className="pt-3 font-bold"><Falta text={b.text} /></h3>;
           case "subheading": return <h4 key={i} className="pt-1 font-bold"><Falta text={b.text} /></h4>;
           case "paragraph": return <p key={i} className="text-justify"><SpansWithGaps spans={b.spans} /></p>;
-          case "bullet": return <p key={i} className="flex gap-3 pl-2 text-justify"><span aria-hidden>•</span><span><SpansWithGaps spans={b.spans} /></span></p>;
+          case "bullet": return <p key={i} className="flex gap-3 pl-2 text-justify"><span aria-hidden={!b.label}>{b.label ?? "•"}</span><span><SpansWithGaps spans={b.spans} /></span></p>;
           case "center": return <p key={i} className="py-2 text-center"><SpansWithGaps spans={b.spans} /></p>;
           case "pagebreak": return <hr key={i} className="my-8 border-dashed border-line" aria-label="Nova página" />;
           case "signatures":

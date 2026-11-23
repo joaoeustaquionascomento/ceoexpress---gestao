@@ -45,6 +45,10 @@ export const contractDataSchema = z.object({
   escopo: txt(30000),
   duracao: txt(200),
   data_inicio: txt(10),
+  data_termino: txt(10),
+  dedicacao: txt(300),
+  honorarios: txt(6000),
+  condicoes_especiais: txt(30000),
   // Valores
   valor_total: txt(30),
   parcelas: txt(4000), // uma por linha: "15/06/2026 1.000,00"
@@ -189,6 +193,8 @@ export const PLACEHOLDERS: { key: string; help: string }[] = [
   { key: "contratada_nome", help: "Nome da contratada" },
   { key: "contratante_qualificacao", help: "Qualificação completa do contratante, montada a partir do formulário (pessoa física ou jurídica)" },
   { key: "contratante_nome", help: "Nome ou razão social do contratante" },
+  { key: "contratante_representante", help: "Quem decide pelo contratante: o representante legal (empresa) ou o próprio contratante (pessoa física)" },
+  { key: "contratada_documento", help: "CNPJ ou CPF da contratada (das configurações)" },
   { key: "servico", help: "Nome do serviço (ex.: Consultoria Estratégica)" },
   { key: "servico_maiusculo", help: "Nome do serviço em letras maiúsculas (para o título)" },
   { key: "preambulo", help: "Considerandos (some se ficar em branco)" },
@@ -196,6 +202,12 @@ export const PLACEHOLDERS: { key: string; help: string }[] = [
   { key: "escopo", help: "Escopo detalhado (Anexo I)" },
   { key: "duracao", help: "Duração prevista" },
   { key: "data_inicio", help: "Data de início (dd/mm/aaaa)" },
+  { key: "data_inicio_extenso", help: "Data de início por extenso" },
+  { key: "data_termino", help: "Data de término (dd/mm/aaaa)" },
+  { key: "data_termino_extenso", help: "Data de término por extenso" },
+  { key: "dedicacao", help: "Dedicação (ex.: até 20 (vinte) horas mensais)" },
+  { key: "honorarios", help: "Honorários em texto livre (ex.: remuneração variável com piso)" },
+  { key: "condicoes_especiais", help: "Condições específicas deste contrato (some se ficar em branco)" },
   { key: "valor_total", help: "Valor total (R$ 0.000,00)" },
   { key: "valor_total_extenso", help: "Valor total por extenso" },
   { key: "parcelas", help: "Lista das parcelas com valores e vencimentos" },
@@ -213,7 +225,19 @@ export const PLACEHOLDERS: { key: string; help: string }[] = [
   { key: "assinaturas", help: "Quadro de assinaturas (e testemunhas, se marcado)" },
 ];
 
+/** Campos de texto livre que podem citar outros campos, ex.: {{contratante_representante}} dentro do escopo. */
+const TEXTOS_LIVRES = ["preambulo", "objeto", "escopo", "honorarios", "dedicacao", "condicoes_especiais"] as const;
+
 export function valoresDosCampos(d: ContractData, s: ProviderSettings): Record<string, string> {
+  const v = valoresBase(d, s);
+  for (const k of TEXTOS_LIVRES) {
+    v[k] = v[k].replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, key: string) =>
+      (TEXTOS_LIVRES as readonly string[]).includes(key) ? m : v[key] || `[falta: ${key}]`);
+  }
+  return v;
+}
+
+function valoresBase(d: ContractData, s: ProviderSettings): Record<string, string> {
   const total = lerReais(d.valor_total);
   const lidas = lerParcelas(d.parcelas);
   const parcelas = "parcelas" in lidas && lidas.parcelas.length ? parcelasNoContrato(lidas.parcelas) : "";
@@ -229,6 +253,14 @@ export function valoresDosCampos(d: ContractData, s: ProviderSettings): Record<s
     escopo: d.escopo,
     duracao: d.duracao,
     data_inicio: d.data_inicio ? dataCurta(d.data_inicio) : "",
+    data_inicio_extenso: d.data_inicio ? dataPorExtenso(d.data_inicio) : "",
+    data_termino: d.data_termino ? dataCurta(d.data_termino) : "",
+    data_termino_extenso: d.data_termino ? dataPorExtenso(d.data_termino) : "",
+    dedicacao: d.dedicacao,
+    honorarios: d.honorarios,
+    condicoes_especiais: d.condicoes_especiais,
+    contratante_representante: d.tipo === "pf" ? d.pf_nome : d.rep_nome,
+    contratada_documento: s.provider_document,
     valor_total: total !== null ? formatarReais(total) : "",
     valor_total_extenso: total !== null ? reaisPorExtenso(total) : "",
     parcelas,
@@ -279,10 +311,50 @@ export function montarTexto(modelo: string, valores: Record<string, string>): { 
   return { texto: saida.join("\n\n"), faltando: [...faltando] };
 }
 
-/** Campos obrigatórios para gerar o PDF (o rascunho pode ser salvo incompleto). */
-export function pendenciasParaGerar(d: ContractData, s: ProviderSettings): string[] {
+/** Campos que o modelo usa (inclusive os citados dentro dos textos livres). */
+export function camposUsados(modelo: string): Set<string> {
+  return new Set([...modelo.matchAll(/\{\{\s*([a-z_]+)\s*\}\}/g)].map((m) => m[1]));
+}
+
+/** Rótulo de cada campo do formulário, para as mensagens de pendência. */
+export const ROTULOS: Record<string, string> = {
+  servico: "Nome do serviço",
+  servico_maiusculo: "Nome do serviço",
+  preambulo: "Considerandos",
+  objeto: "Objeto",
+  escopo: "Escopo",
+  duracao: "Duração / vigência",
+  data_inicio: "Data de início",
+  data_inicio_extenso: "Data de início",
+  data_termino: "Data de término",
+  data_termino_extenso: "Data de término",
+  dedicacao: "Dedicação",
+  honorarios: "Honorários",
+  condicoes_especiais: "Condições específicas",
+  forma_pagamento: "Forma de pagamento",
+  indice_correcao: "Índice de correção",
+  contratante_representante: "Representante do contratante",
+  cidade: "Cidade da assinatura",
+  data_extenso: "Data da assinatura",
+  foro: "Foro",
+  contratada_qualificacao: "Dados da contratada (em Contratos › Dados da contratada)",
+  contratada_nome: "Nome da contratada (em Contratos › Dados da contratada)",
+  contratada_documento: "CNPJ da contratada (em Contratos › Dados da contratada)",
+};
+
+/** Campos que podem ficar vazios: o parágrafo deles some. */
+const OPCIONAIS = new Set(["preambulo", "condicoes_especiais"]);
+
+/**
+ * O que falta para gerar o PDF com este modelo (o rascunho pode ser salvo
+ * incompleto). Só cobra os campos que o modelo realmente usa.
+ */
+export function pendenciasParaGerar(d: ContractData, s: ProviderSettings, modelo: string): string[] {
   const p: string[] = [];
-  if (!s.provider_qualification) p.push("Dados da contratada (em Contratos › Configurações)");
+  const usados = camposUsados(modelo);
+  for (const k of TEXTOS_LIVRES) {
+    for (const m of d[k].matchAll(/\{\{\s*([a-z_]+)\s*\}\}/g)) usados.add(m[1]);
+  }
   if (d.tipo === "pf") {
     if (!d.pf_nome) p.push("Nome do contratante");
     if (!d.pf_cpf) p.push("CPF do contratante");
@@ -291,19 +363,55 @@ export function pendenciasParaGerar(d: ContractData, s: ProviderSettings): strin
     if (!d.pj_cnpj) p.push("CNPJ do contratante");
   }
   if (!d.endereco) p.push("Endereço do contratante");
-  if (!d.servico) p.push("Nome do serviço");
-  if (!d.objeto) p.push("Objeto");
-  const total = lerReais(d.valor_total);
-  if (total === null || total <= 0) p.push("Valor total");
-  const lidas = lerParcelas(d.parcelas);
-  if ("erro" in lidas) p.push(lidas.erro);
-  else if (!lidas.parcelas.length) p.push("Parcelas (use o botão Calcular parcelas)");
-  else if (total !== null) {
-    const soma = Math.round(lidas.parcelas.reduce((a, x) => a + x.valor, 0) * 100) / 100;
-    if (Math.abs(soma - total) > 0.001) p.push(`A soma das parcelas (${formatarReais(soma)}) é diferente do valor total (${formatarReais(total)})`);
+  if (usados.has("contratante_representante") && d.tipo === "pj" && !d.rep_nome) p.push("Representante legal do contratante");
+
+  const valores = valoresBase(d, s);
+  const ja = new Set(p);
+  for (const k of usados) {
+    if (OPCIONAIS.has(k) || k === "assinaturas" || k === "contratante_representante") continue;
+    if (k === "valor_total" || k === "valor_total_extenso" || k === "parcelas") continue;
+    if (valores[k] === undefined || valores[k] === "") {
+      const r = ROTULOS[k] ?? k;
+      if (!ja.has(r)) { p.push(r); ja.add(r); }
+    }
   }
-  if (!d.cidade) p.push("Cidade da assinatura");
-  if (!d.data_assinatura) p.push("Data da assinatura");
-  if (!d.foro) p.push("Foro");
+
+  if (usados.has("valor_total") || usados.has("valor_total_extenso") || usados.has("parcelas")) {
+    const total = lerReais(d.valor_total);
+    if (total === null || total <= 0) p.push("Valor total");
+    if (usados.has("parcelas")) {
+      const lidas = lerParcelas(d.parcelas);
+      if ("erro" in lidas) p.push(lidas.erro);
+      else if (!lidas.parcelas.length) p.push("Parcelas (use o botão Calcular parcelas)");
+      else if (total !== null) {
+        const soma = Math.round(lidas.parcelas.reduce((a, x) => a + x.valor, 0) * 100) / 100;
+        if (Math.abs(soma - total) > 0.001) p.push(`A soma das parcelas (${formatarReais(soma)}) é diferente do valor total (${formatarReais(total)})`);
+      }
+    }
+  }
+
+  // Trechos sugeridos pelo modelo que ainda pedem preenchimento.
+  const marcados = Object.entries(d)
+    .filter(([, v]) => typeof v === "string" && /\[PREENCHER/i.test(v))
+    .map(([k]) => ROTULOS[k] ?? k);
+  if (marcados.length) p.push(`Complete os trechos marcados [PREENCHER] em: ${[...new Set(marcados)].join(", ")}`);
   return p;
+}
+
+/** Valores sugeridos que um modelo pode trazer para o contrato novo. */
+export const CAMPOS_SUGERIDOS = [
+  "servico", "duracao", "preambulo", "objeto", "escopo", "dedicacao", "honorarios", "condicoes_especiais", "forma_pagamento",
+  "indice_correcao", "multa_atraso", "juros_mes", "multa_rescisoria", "prazo_cura", "aviso_previo", "sigilo_anos", "testemunhas",
+] as const;
+export type TemplateDefaults = Partial<Pick<ContractData, (typeof CAMPOS_SUGERIDOS)[number]>>;
+
+/** Junta os padrões gerais com os sugeridos pelo modelo. */
+export function aplicarSugestoes(base: ContractData, sugestoes: unknown): ContractData {
+  if (!sugestoes || typeof sugestoes !== "object") return base;
+  const src = sugestoes as Record<string, unknown>;
+  const merged: Record<string, unknown> = { ...base };
+  for (const k of CAMPOS_SUGERIDOS) {
+    if (src[k] !== undefined && src[k] !== null && src[k] !== "") merged[k] = src[k];
+  }
+  return contractDataSchema.parse(merged);
 }
