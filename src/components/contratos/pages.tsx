@@ -28,6 +28,7 @@ import {
   valoresDosCampos,
   type ContractStatus,
 } from "@/lib/contratos/dados";
+import { COMPANY_FIELDS } from "@/lib/contratos/cliente";
 import { getContract, getSettings, hojeSP } from "@/lib/contratos/servidor";
 import { formatDate } from "@/lib/status";
 import { createClient } from "@/lib/supabase/server";
@@ -44,7 +45,7 @@ function StatusBadge({ status }: { status: ContractStatus }) {
 
 async function companies(): Promise<CompanyOption[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from("companies").select("id, legal_name, trade_name, cnpj").eq("status", "ativo").order("trade_name");
+  const { data } = await supabase.from("companies").select(COMPANY_FIELDS).eq("status", "ativo").order("trade_name");
   return (data ?? []) as CompanyOption[];
 }
 

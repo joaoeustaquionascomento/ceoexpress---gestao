@@ -18,6 +18,7 @@ import {
 import { SubmitButton } from "@/components/submit-button";
 import { Alert, inputClass, labelClass, primaryButton } from "@/components/ui";
 import { calcularParcelas, parcelasParaTexto, PLACEHOLDERS, type ContractData, type ProviderSettings } from "@/lib/contratos/dados";
+import { dadosDoCliente, type CompanyRecord } from "@/lib/contratos/cliente";
 import { lerReais } from "@/lib/contratos/extenso";
 import { createClient } from "@/lib/supabase/client";
 import { MAX_UPLOAD_BYTES } from "@/lib/upload";
@@ -211,7 +212,7 @@ function confirmar(msg: string) {
 // ---------------------------------------------------------------------------
 // Contrato: formulário de dados
 // ---------------------------------------------------------------------------
-export type CompanyOption = { id: string; legal_name: string; trade_name: string; cnpj: string | null };
+export type CompanyOption = CompanyRecord;
 export type TemplateOption = { id: string; title: string; description?: string | null; uses: string[] };
 
 export function ContractForm({
@@ -254,14 +255,21 @@ export function ContractForm({
     if (el) el.value = value;
   };
 
+  const [companyMsg, setCompanyMsg] = useState<string | null>(null);
+  /** Puxa os dados do cadastro do cliente para os campos que estão vazios. */
   function onCompany(id: string) {
     const c = companies.find((x) => x.id === id);
-    if (!c) return;
-    const razao = (formRef.current?.elements.namedItem("pj_razao") as HTMLInputElement | null)?.value;
-    if (tipo === "pj" && !razao) {
-      set("pj_razao", c.legal_name);
-      if (c.cnpj) set("pj_cnpj", c.cnpj);
+    if (!c) return setCompanyMsg(null);
+    const dados = dadosDoCliente(c);
+    const get = (n: string) => (formRef.current?.elements.namedItem(n) as HTMLInputElement | null)?.value ?? "";
+    const nomeVazio = !get("pj_razao") && !get("pf_nome");
+    if (nomeVazio && dados.tipo) setTipo(dados.tipo);
+    let n = 0;
+    for (const [k, val] of Object.entries(dados)) {
+      if (k === "tipo" || typeof val !== "string" || !val) continue;
+      if (!get(k)) { set(k, val); n++; }
     }
+    setCompanyMsg(n ? `Dados de ${c.trade_name} preenchidos a partir do cadastro. Confira abaixo.` : "Os campos já estavam preenchidos; nada foi trocado.");
   }
 
   function calcular() {
@@ -295,11 +303,12 @@ export function ContractForm({
             {tpl?.description && <p className="text-xs text-muted">{tpl.description}</p>}
             {!contractId && <p className="text-xs text-muted">Ao trocar de modelo, os textos sugeridos dele são carregados.</p>}
           </Field>
-          <Field label="Empresa cliente no app (opcional)" name="company_id" hint="Liga o contrato à empresa, para o cliente poder vê-lo depois de assinado.">
+          <Field label="Cliente cadastrado no app (opcional)" name="company_id" hint="Puxa os dados do cadastro e, ao salvar, completa no cadastro o que estiver faltando.">
             <select id="company_id" name="company_id" defaultValue={companyId ?? ""} onChange={(e) => onCompany(e.target.value)} className={inputClass}>
-              <option value="">Nenhuma</option>
+              <option value="">Nenhum</option>
               {companies.map((c) => <option key={c.id} value={c.id}>{c.trade_name}</option>)}
             </select>
+            {companyMsg && <p className="text-xs font-semibold text-ok" role="status">{companyMsg}</p>}
           </Field>
         </div>
       </fieldset>
