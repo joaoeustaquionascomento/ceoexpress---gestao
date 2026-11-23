@@ -241,12 +241,12 @@ export async function saveRequestTemplate(_: FormResult, form: FormData): Promis
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
   if (!parsed.data.code) return { error: "Informe o código (ex.: PI-17)." };
   const id = uuid.safeParse(form.get("templateId"));
-  const row = { ...parsed.data, active: form.get("active") !== "off" };
+  const row = { ...parsed.data, active: form.get("active") !== "off", service: form.get("service") === "mentoria" ? "mentoria" : "empresa" };
   const supabase = await createClient();
   const { error } = id.success
     ? await supabase.from("request_templates").update(row).eq("id", id.data)
     : await supabase.from("request_templates").insert(row);
-  if (error) return { error: error.code === "23505" ? "Já existe um modelo com este código." : "Não foi possível salvar o modelo." };
+  if (error) return { error: error.code === "23505" ? "Já existe um modelo com este código para este serviço." : "Não foi possível salvar o modelo." };
   refreshLibrary();
   redirect("/admin/modelos");
 }
@@ -284,12 +284,12 @@ export async function saveActionTemplate(_: FormResult, form: FormData): Promise
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
   const id = uuid.safeParse(form.get("templateId"));
-  const row = { ...parsed.data, active: form.get("active") !== "off" };
+  const row = { ...parsed.data, active: form.get("active") !== "off", service: form.get("service") === "mentoria" ? "mentoria" : "empresa" };
   const supabase = await createClient();
   const { error } = id.success
     ? await supabase.from("action_templates").update(row).eq("id", id.data)
     : await supabase.from("action_templates").insert(row);
-  if (error) return { error: error.code === "23505" ? "Já existe um modelo com este código." : "Não foi possível salvar o modelo." };
+  if (error) return { error: error.code === "23505" ? "Já existe um modelo com este código para este serviço." : "Não foi possível salvar o modelo." };
   refreshLibrary();
   redirect("/admin/modelos");
 }

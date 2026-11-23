@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { publicEnv } from "@/lib/env";
 import { generateInviteToken, hashToken } from "@/lib/tokens";
@@ -19,7 +20,8 @@ const company = z.object({
     .transform((v) => normalizeCnpj(v))
     .refine((v) => v !== "invalido", "O CNPJ precisa ter 14 números. Pode deixar em branco."),
   segment: z.string().trim().max(120, "Segmento muito longo (máximo 120 caracteres).").optional().transform((v) => v || null),
-});
+  person_kind: z.enum(["pj", "pf"]).default("pj"),
+}).refine((c) => c.person_kind === "pj" || !c.cnpj, { message: "Pessoa física não tem CNPJ. Deixe o campo em branco." });
 
 export async function createCompany(_: AdminState, form: FormData): Promise<AdminState> {
   const user = await requireRole("admin");
@@ -53,6 +55,75 @@ export async function createProject(_: AdminState, form: FormData): Promise<Admi
   revalidatePath("/admin");
   // Próximo passo: escolher os pedidos e as ações da biblioteca de modelos.
   redirect(`/admin/projetos/${data.id}/modelos?novo=1`);
+}
+
+const projectEdit = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(2, "Informe o nome do projeto.").max(200),
+  kind: z.string().trim().max(120).optional().transform((v) => v || null),
+  status: z.enum(["planejado", "ativo", "pausado", "encerrado"]),
+  starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")).transform((v) => v || null),
+  description: z.string().trim().max(2000).optional().transform((v) => v || null),
+});
+
+function refreshProjects(id: string) {
+  revalidatePath("/admin/projetos");
+  revalidatePath("/admin");
+  for (const a of ["admin", "consultor", "cliente"]) revalidatePath(`/${a}/projetos/${id}`, "layout");
+}
+
+/** Altera nome, tipo de serviço, situação, início e descrição do projeto. */
+export async function updateProject(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireRole("admin");
+  const parsed = projectEdit.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
+  const { id, ...row } = parsed.data;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("projects").update(row).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "Não foi possível salvar o projeto." };
+  refreshProjects(id);
+  return { ok: "Projeto atualizado." };
+}
+
+/**
+ * Exclui o projeto e tudo o que é dele (pedidos, arquivos, ações, agenda,
+ * ferramentas, relatórios e avaliações). Exige digitar o nome do projeto.
+ */
+export async function deleteProject(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireRole("admin");
+  const id = z.string().uuid().safeParse(form.get("id"));
+  if (!id.success) return { error: "Projeto inválido." };
+  const supabase = await createClient();
+  const { data: proj } = await supabase.from("projects").select("name").eq("id", id.data).maybeSingle();
+  if (!proj) return { error: "Projeto não encontrado." };
+  const typed = String(form.get("confirm") ?? "").trim();
+  if (typed.toLocaleLowerCase("pt-BR") !== proj.name.trim().toLocaleLowerCase("pt-BR")) {
+    return { error: `Para confirmar, digite o nome do projeto exatamente: ${proj.name}` };
+  }
+  // Arquivos enviados ficam no armazenamento: apaga antes, enquanto ainda sabemos quais são.
+  const { data: docs } = await supabase.from("documents").select("id").eq("project_id", id.data);
+  const docIds = (docs ?? []).map((d) => d.id);
+  if (docIds.length) {
+    const { data: versions } = await supabase.from("document_versions").select("storage_path").in("document_id", docIds);
+    const paths = (versions ?? []).map((v) => v.storage_path).filter(Boolean);
+    if (paths.length) {
+      const admin = createAdminClient();
+      for (let i = 0; i < paths.length; i += 100) {
+        const { error } = await admin.storage.from("documentos").remove(paths.slice(i, i + 100));
+        if (error) {
+          console.error("deleteProject storage", error.message);
+          return { error: "Não foi possível apagar os arquivos do projeto. Nada foi excluído." };
+        }
+      }
+    }
+  }
+  const { error } = await supabase.from("projects").delete().eq("id", id.data);
+  if (error) {
+    console.error("deleteProject", error.code, error.message);
+    return { error: "Não foi possível excluir o projeto." };
+  }
+  refreshProjects(id.data);
+  redirect("/admin/projetos");
 }
 
 const invite = z.object({

@@ -1,5 +1,5 @@
 import { ActionForm } from "@/components/action-form";
-import { Card, EmptyState, PageTitle, inputClass, labelClass } from "@/components/ui";
+import { Badge, Card, EmptyState, PageTitle, inputClass, labelClass } from "@/components/ui";
 import { formatCnpj } from "@/lib/cnpj";
 import { createClient } from "@/lib/supabase/server";
 import { createCompany } from "../actions";
@@ -8,11 +8,11 @@ export default async function EmpresasPage() {
   const supabase = await createClient();
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, trade_name, legal_name, cnpj, segment, status, projects(count)")
+    .select("id, trade_name, legal_name, cnpj, segment, status, person_kind, projects(count)")
     .order("trade_name");
   return (
     <>
-      <PageTitle eyebrow="Cadastros" title="Empresas clientes" />
+      <PageTitle eyebrow="Cadastros" title="Empresas e pessoas clientes" />
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-2">
           {!companies?.length ? (
@@ -20,7 +20,10 @@ export default async function EmpresasPage() {
           ) : (
             companies.map((c) => (
               <Card key={c.id} className="!p-4">
-                <p className="font-semibold text-plum">{c.trade_name}</p>
+                <p className="flex flex-wrap items-center gap-2 font-semibold text-plum">
+                  {c.trade_name}
+                  {c.person_kind === "pf" && <Badge tone="info">Pessoa física</Badge>}
+                </p>
                 <p className="text-sm text-muted">
                   {c.legal_name}
                   {c.cnpj ? ` · CNPJ ${formatCnpj(c.cnpj)}` : ""}
@@ -31,8 +34,16 @@ export default async function EmpresasPage() {
           )}
         </div>
         <Card>
-          <h2 className="mb-4 font-semibold text-plum">Nova empresa</h2>
-          <ActionForm action={createCompany} submit="Cadastrar empresa">
+          <h2 className="mb-4 font-semibold text-plum">Novo cadastro</h2>
+          <ActionForm action={createCompany} submit="Cadastrar">
+            <div className="space-y-1">
+              <label className={labelClass} htmlFor="person_kind">Tipo</label>
+              <select id="person_kind" name="person_kind" className={inputClass} defaultValue="pj">
+                <option value="pj">Empresa (pessoa jurídica)</option>
+                <option value="pf">Pessoa física (ex.: mentorado sem empresa)</option>
+              </select>
+              <p className="text-xs text-muted">Para pessoa física, use o nome da pessoa nos dois campos de nome e deixe o CNPJ em branco.</p>
+            </div>
             <div className="space-y-1"><label className={labelClass} htmlFor="trade_name">Nome fantasia</label><input id="trade_name" name="trade_name" required className={inputClass} /></div>
             <div className="space-y-1"><label className={labelClass} htmlFor="legal_name">Razão social</label><input id="legal_name" name="legal_name" required className={inputClass} /></div>
             <div className="space-y-1"><label className={labelClass} htmlFor="cnpj">CNPJ</label><input id="cnpj" name="cnpj" inputMode="numeric" maxLength={30} placeholder="Opcional" className={inputClass} /></div>
