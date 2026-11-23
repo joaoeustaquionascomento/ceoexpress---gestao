@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AttachmentForm, DeleteMinutesForm, MinutesEditor, MinutesStarter, SendItemsForm } from "@/components/atas/client";
+import { AttachmentForm, DeleteMinutesForm, MinutesEditor, MinutesStarter, NewMinutesForm, SendItemsForm } from "@/components/atas/client";
 import { PrintButton } from "@/components/relatorios/client";
-import { BackLink, Badge, Card, Logo, PageTitle } from "@/components/ui";
+import { BackLink, Badge, Card, EmptyState, Logo, PageTitle } from "@/components/ui";
 import { getProjectAccess } from "@/lib/access";
 import { normalizeMinutes, type MinutesContent } from "@/lib/atas/conteudo";
-import { getProjectHeader, type Area } from "@/lib/execucao";
+import { getProjectHeader, today, type Area } from "@/lib/execucao";
 import { formatDateTime } from "@/lib/queries";
 import { aiConfigured } from "@/lib/relatorios/ia";
 import { formatDate } from "@/lib/status";
@@ -283,6 +283,72 @@ export async function MinutesPage({ area, projectId, meetingId, edit }: { area: 
           )}
         </div>
       )}
+    </>
+  );
+}
+
+/** Todas as atas do projeto, a partir das reuniões da agenda. */
+export async function MinutesListPage({ area, projectId }: { area: Area; projectId: string }) {
+  if (!UUID.test(projectId)) notFound();
+  const [header, access] = await Promise.all([getProjectHeader(projectId), getProjectAccess(projectId)]);
+  if (!header || !access) notFound();
+  const supabase = await createClient();
+  const [{ data: meetings }, { data: rows }] = await Promise.all([
+    supabase.from("meetings").select("id, title, scheduled_on, start_time, visibility").eq("project_id", projectId).order("scheduled_on", { ascending: false }),
+    supabase.from("meeting_minutes").select("meeting_id, status").eq("project_id", projectId),
+  ]);
+  const staff = access.staff && area !== "cliente";
+  const base = `/${area}/projetos/${projectId}`;
+  const status = new Map((rows ?? []).map((r) => [r.meeting_id as string, r.status as string]));
+  const list = (meetings ?? []).filter((m) => staff || status.get(m.id) === "revisada");
+
+  return (
+    <>
+      <BackLink href={base} label="Voltar ao projeto" />
+      <PageTitle eyebrow={header.company?.trade_name} title="Atas de reunião">
+        {header.name}.{" "}
+        {staff
+          ? "Monte a ata pela transcrição da reunião (Meet, Zoom ou Teams), suba uma ata pronta ou comece em branco. O cliente só vê depois que você marcar como revisada."
+          : "Atas revisadas e compartilhadas pela consultoria."}
+      </PageTitle>
+      <div className={staff ? "grid gap-6 lg:grid-cols-[1fr_340px]" : ""}>
+        <div>
+          {list.length === 0 ? (
+            <EmptyState>{staff ? "Nenhuma reunião ainda. Crie a primeira ao lado." : "A consultoria ainda não compartilhou nenhuma ata."}</EmptyState>
+          ) : (
+            <ul className="space-y-2">
+              {list.map((m) => {
+                const st = status.get(m.id);
+                return (
+                  <li key={m.id}>
+                    <Link href={`${base}/agenda/${m.id}/ata`} className="block">
+                      <Card className="!p-4 hover:border-soft-rose">
+                        <p className="text-xs font-semibold text-rose">
+                          {formatDate(m.scheduled_on)}{m.start_time ? ` · ${String(m.start_time).slice(0, 5)}` : ""}
+                        </p>
+                        <p className="font-semibold text-plum">{m.title}</p>
+                        {staff && (
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {st === "revisada" ? <Badge tone="ok">Ata revisada</Badge> : st ? <Badge tone="warn">Ata em rascunho</Badge> : <Badge tone="neutral">Sem ata · clique para montar</Badge>}
+                            {m.visibility === "internal" && <Badge tone="warn">Interna</Badge>}
+                          </div>
+                        )}
+                      </Card>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        {staff && (
+          <Card>
+            <h2 className="mb-2 font-semibold text-plum">Nova ata de reunião</h2>
+            <p className="mb-3 text-sm text-muted">Cria a reunião na agenda do projeto e abre a tela da ata.</p>
+            <NewMinutesForm area={area} projectId={projectId} today={today()} />
+          </Card>
+        )}
+      </div>
     </>
   );
 }

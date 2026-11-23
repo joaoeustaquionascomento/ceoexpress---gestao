@@ -316,3 +316,29 @@ export async function finalizeMinutesFile(input: {
   refresh(ctx.projectId);
   return { ok: true };
 }
+
+/** Cria o encontro e já abre a tela da ata (atalho da página "Atas de reunião"). */
+export async function createMeetingForMinutes(_: MinutesResult, form: FormData): Promise<MinutesResult> {
+  const projectId = uuid.safeParse(form.get("projectId"));
+  if (!projectId.success) return { error: "Projeto inválido." };
+  const access = await getProjectAccess(projectId.data);
+  if (!access?.staff) return { error: "Só a consultoria cria atas." };
+  const parsed = z
+    .object({
+      title: z.string().trim().min(3, "Dê um título à reunião.").max(200),
+      scheduled_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data da reunião."),
+    })
+    .safeParse({ title: form.get("title"), scheduled_on: form.get("scheduled_on") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
+  const supabase = await createClient();
+  const { data: project } = await supabase.from("projects").select("company_id").eq("id", projectId.data).maybeSingle();
+  if (!project) return { error: "Projeto não encontrado." };
+  const { data, error } = await supabase
+    .from("meetings")
+    .insert({ ...parsed.data, held: true, project_id: projectId.data, company_id: project.company_id, created_by: access.userId })
+    .select("id")
+    .single();
+  if (error || !data) return { error: "Não foi possível criar a reunião." };
+  refresh(projectId.data);
+  redirect(`/${form.get("area") === "admin" ? "admin" : "consultor"}/projetos/${projectId.data}/agenda/${data.id}/ata`);
+}
