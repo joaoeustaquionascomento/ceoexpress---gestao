@@ -2,6 +2,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  createMeetingForMinutes,
   deleteMinutes,
   finalizeMinutesFile,
   prepareMinutesFile,
@@ -484,5 +485,25 @@ export function DeleteMinutesForm({ area, projectId, meetingId }: { area: string
         <button type="submit" className="inline-flex min-h-11 items-center rounded-lg bg-bad px-4 font-semibold text-white hover:opacity-90">Sim, excluir</button>
       </form>
     </details>
+  );
+}
+
+export function NewMinutesForm({ area, projectId, today }: { area: string; projectId: string; today: string }) {
+  const [state, action] = useActionState(createMeetingForMinutes, undefined);
+  return (
+    <form action={action} className="space-y-3">
+      <Feedback state={state} />
+      <input type="hidden" name="area" value={area} />
+      <input type="hidden" name="projectId" value={projectId} />
+      <div className="space-y-1">
+        <label htmlFor="nm-title" className={labelClass}>Título da reunião</label>
+        <input id="nm-title" name="title" required maxLength={200} placeholder="Ex.: Reunião de acompanhamento" className={inputClass} />
+      </div>
+      <div className="space-y-1">
+        <label htmlFor="nm-date" className={labelClass}>Data</label>
+        <input id="nm-date" name="scheduled_on" type="date" required defaultValue={today} className={inputClass} />
+      </div>
+      <SubmitButton pendingText="Criando…">Criar e montar a ata</SubmitButton>
+    </form>
   );
 }

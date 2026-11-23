@@ -139,6 +139,9 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
             <Link href={`${basePath}/relatorios`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
               Relatórios
             </Link>
+            <Link href={`${basePath}/atas`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+              Atas de reunião
+            </Link>
             {(audience === "staff" || /mentoria/i.test(data.project?.kind ?? "")) && (
               <Link href={`${basePath}/mentoria`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
                 Mentoria
@@ -197,6 +200,9 @@ export function ProjectView({ data, audience, basePath }: { data: Data; audience
                   <p className="font-semibold">{m.title}</p>
                   {m.agenda && <p className="text-muted">{m.agenda}</p>}
                   {m.expected_output && <p className="mt-1 text-xs text-muted">Resultado esperado: {m.expected_output}</p>}
+                  <Link href={`${basePath}/agenda/${m.id}/ata`} className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-mauve hover:text-plum">
+                    {audience === "staff" ? "Ata da reunião →" : "Ver ata →"}
+                  </Link>
                 </li>
               ))}
             </ol>
