@@ -231,7 +231,9 @@ export function ActionForm({
   );
 }
 
-export function MeetingForm({ projectId, meeting }: { projectId: string; meeting?: Record<string, unknown> }) {
+export function MeetingForm({
+  projectId, meeting, structuredMinutes = false,
+}: { projectId: string; meeting?: Record<string, unknown>; structuredMinutes?: boolean }) {
   const [state, action] = useActionState(saveMeeting, undefined);
   const v = (k: string) => (meeting?.[k] as string | null | undefined) ?? "";
   const p = meeting ? `m-${String(meeting.id)}-` : "m-new-";
@@ -257,7 +259,7 @@ export function MeetingForm({ projectId, meeting }: { projectId: string; meeting
       <Field label="Resultado esperado" name={`${p}out`}>
         <input id={`${p}out`} name="expected_output" defaultValue={v("expected_output")} className={inputClass} />
       </Field>
-      {meeting && (
+      {meeting && !structuredMinutes && (
         <Field label="Ata (o que foi tratado e decidido)" name={`${p}min`}>
           <textarea id={`${p}min`} name="minutes" rows={4} defaultValue={v("minutes")} className={inputClass} />
         </Field>
