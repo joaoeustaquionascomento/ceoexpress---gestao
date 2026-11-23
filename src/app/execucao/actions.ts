@@ -239,7 +239,9 @@ export async function saveMeeting(_: FormResult, form: FormData): Promise<FormRe
       visibility: form.get("internal") === "on" ? "internal" : "client",
     });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
-  const { id, ...fields } = parsed.data;
+  const { id, minutes, ...rest } = parsed.data;
+  // Quando o encontro tem ata estruturada, o campo simples não vem no formulário e não é tocado.
+  const fields = form.has("minutes") ? { ...rest, minutes } : rest;
   const q = id
     ? ctx.supabase.from("meetings").update(fields).eq("id", id).eq("project_id", ctx.projectId)
     : ctx.supabase.from("meetings").insert({ ...fields, project_id: ctx.projectId, company_id: ctx.companyId, created_by: ctx.access.userId });

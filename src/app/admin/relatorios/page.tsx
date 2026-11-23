@@ -16,6 +16,13 @@ export default async function Page() {
     .order("created_at", { ascending: false })
     .limit(10000);
   const rows = data ?? [];
+  const { data: atas } = await supabase
+    .from("meeting_minutes")
+    .select("engine, status, usage")
+    .gte("created_at", since.toISOString().slice(0, 10))
+    .limit(10000);
+  const atasRows = atas ?? [];
+  const atasBy = (e: string) => atasRows.filter((a) => a.engine === e).length;
 
   type Month = { projeto: number; ferramenta: number; ia: number; revisados: number; compartilhados: number; tokensIn: number; tokensOut: number };
   const months = new Map<string, Month>();
@@ -53,6 +60,13 @@ export default async function Page() {
         <Stat label="Revisados" value={rows.filter((r) => r.status === "revisado").length} hint="nos últimos 12 meses" />
         <Stat label="Análise com IA" value={aiConfigured() ? "Ligada" : "Desligada"} hint={aiConfigured() ? "chave cadastrada" : "sem custo de IA"} />
       </div>
+      <Card className="mb-6">
+        <h2 className="mb-1 font-semibold text-plum">Atas de reunião (últimos 12 meses)</h2>
+        <p className="text-sm text-muted">
+          {atasRows.length} atas · {atasBy("regras")} montadas da transcrição sem IA · {atasBy("importada")} trazidas prontas · {atasBy("manual")} escritas à mão · {atasBy("ia")} com IA ·{" "}
+          {atasRows.filter((a) => a.status === "revisada").length} revisadas
+        </p>
+      </Card>
       {list.length === 0 ? (
         <EmptyState>Nenhum relatório gerado ainda.</EmptyState>
       ) : (

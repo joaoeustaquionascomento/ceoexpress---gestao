@@ -18,19 +18,25 @@ export type AiResult = {
   usage: { input_tokens: number; output_tokens: number; cache_read_input_tokens: number | null };
 };
 
-export async function runAnalysis(kind: ReportKind, dossier: string): Promise<AiResult> {
+/** Chamada à IA com resposta em JSON (saída estruturada). Devolve o JSON já lido e o consumo. */
+export async function runStructured(opts: {
+  system: string;
+  user: string;
+  schema: Record<string, unknown>;
+  maxTokens?: number;
+}): Promise<{ json: unknown; model: string; usage: AiResult["usage"] }> {
   if (!aiConfigured()) throw new AiError("A IA ainda não está ligada: falta a chave ANTHROPIC_API_KEY na Vercel.");
   const client = new Anthropic({ maxRetries: 2, timeout: 280_000 });
   let msg;
   try {
     const stream = client.beta.messages.stream({
       model: AI_MODEL,
-      max_tokens: 32000,
+      max_tokens: opts.maxTokens ?? 32000,
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
-      output_config: { effort: "medium", format: { type: "json_schema", schema: REPORT_SCHEMA } },
-      system: [{ type: "text", text: SYSTEM_PROMPT[kind], cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: userPrompt(kind, dossier) }],
+      output_config: { effort: "medium", format: { type: "json_schema", schema: opts.schema } },
+      system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: opts.user }],
     });
     msg = await stream.finalMessage();
   } catch (e) {
@@ -44,11 +50,11 @@ export async function runAnalysis(kind: ReportKind, dossier: string): Promise<Ai
       throw new AiError("A IA demorou demais para responder. Tente de novo.");
     if (e instanceof Anthropic.InternalServerError || e instanceof Anthropic.APIConnectionError)
       throw new AiError("O serviço de IA está instável agora. Tente de novo em alguns minutos.");
-    console.error("relatorios: falha na IA", e);
-    throw new AiError("Não foi possível gerar a análise. Tente de novo.");
+    console.error("ia: falha na chamada", e);
+    throw new AiError("Não foi possível gerar com a IA. Tente de novo.");
   }
 
-  if (msg.stop_reason === "refusal") throw new AiError("A IA não aceitou analisar este conteúdo. Revise os dados e tente de novo.");
+  if (msg.stop_reason === "refusal") throw new AiError("A IA não aceitou analisar este conteúdo. Revise o texto e tente de novo.");
   if (msg.stop_reason === "max_tokens") throw new AiError("A resposta ficou longa demais e foi cortada. Tente de novo.");
 
   // Se houve troca de modelo no meio, vale só o que veio depois do último bloco "fallback".
@@ -57,16 +63,14 @@ export async function runAnalysis(kind: ReportKind, dossier: string): Promise<Ai
     .slice(lastFallback + 1)
     .flatMap((b) => (b.type === "text" ? [b.text] : []))
     .join("");
-  let parsed: unknown;
+  let json: unknown;
   try {
-    parsed = JSON.parse(text);
+    json = JSON.parse(text);
   } catch {
     throw new AiError("A IA devolveu um formato inesperado. Tente de novo.");
   }
-  const content = normalizeContent(parsed);
-  if (!content.resumo && content.secoes.length === 0) throw new AiError("A IA devolveu uma análise vazia. Tente de novo.");
   return {
-    content,
+    json,
     model: msg.model,
     usage: {
       input_tokens: msg.usage.input_tokens,
@@ -74,4 +78,11 @@ export async function runAnalysis(kind: ReportKind, dossier: string): Promise<Ai
       cache_read_input_tokens: msg.usage.cache_read_input_tokens ?? null,
     },
   };
+}
+
+export async function runAnalysis(kind: ReportKind, dossier: string): Promise<AiResult> {
+  const r = await runStructured({ system: SYSTEM_PROMPT[kind], user: userPrompt(kind, dossier), schema: REPORT_SCHEMA as unknown as Record<string, unknown> });
+  const content = normalizeContent(r.json);
+  if (!content.resumo && content.secoes.length === 0) throw new AiError("A IA devolveu uma análise vazia. Tente de novo.");
+  return { content, model: r.model, usage: r.usage };
 }

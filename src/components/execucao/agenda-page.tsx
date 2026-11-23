@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, BackLink, Card, EmptyState, PageTitle } from "@/components/ui";
 import Link from "next/link";
 import { DecisionForm, DecisionStepsForm, MeetingForm, MilestoneForm } from "@/components/execucao/forms";
 import { getProjectAccess } from "@/lib/access";
+import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import { ACTION_STATUS } from "@/lib/status";
 import { DECISION_KIND, DECISION_STATUS, SIDE, getAgenda, getProjectHeader, today, type Area } from "@/lib/execucao";
@@ -27,6 +29,10 @@ export async function AgendaPage({ area, params }: { area: Area; params: Promise
   const base = `/${area}/projetos/${id}`;
   const staff = access.staff;
   const now = today();
+  // Atas estruturadas (o banco só devolve ao cliente as revisadas).
+  const supabase = await createClient();
+  const { data: minutesRows } = await supabase.from("meeting_minutes").select("meeting_id, status").eq("project_id", id);
+  const minutesBy = new Map((minutesRows ?? []).map((r) => [r.meeting_id as string, r.status as string]));
   const meetingOptions = meetings.map((m) => ({ id: m.id, label: `${formatDate(m.scheduled_on)} · ${m.title}` }));
 
   return (
@@ -52,13 +58,29 @@ export async function AgendaPage({ area, params }: { area: Area; params: Promise
               </div>
               {m.agenda && <p className="mt-2 text-sm text-muted">{m.agenda}</p>}
               {m.expected_output && <p className="mt-1 text-xs text-muted">Resultado esperado: {m.expected_output}</p>}
-              {m.minutes && (
-                <div className="mt-2 rounded-lg bg-canvas p-3 text-sm">
-                  <p className="font-semibold text-plum">Ata</p>
-                  <p className="whitespace-pre-line">{m.minutes}</p>
+              {minutesBy.has(m.id) ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Link href={`${base}/agenda/${m.id}/ata`} className="inline-flex min-h-11 items-center rounded-lg bg-tint px-4 text-sm font-semibold text-plum hover:bg-canvas">
+                    Ver ata
+                  </Link>
+                  {staff && <Badge tone={minutesBy.get(m.id) === "revisada" ? "ok" : "warn"}>{minutesBy.get(m.id) === "revisada" ? "Ata revisada" : "Ata em rascunho"}</Badge>}
                 </div>
+              ) : (
+                <>
+                  {m.minutes && (
+                    <div className="mt-2 rounded-lg bg-canvas p-3 text-sm">
+                      <p className="font-semibold text-plum">Ata</p>
+                      <p className="whitespace-pre-line">{m.minutes}</p>
+                    </div>
+                  )}
+                  {staff && (
+                    <Link href={`${base}/agenda/${m.id}/ata`} className="mt-2 inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-mauve hover:bg-tint">
+                      Montar ata pela transcrição
+                    </Link>
+                  )}
+                </>
               )}
-              {staff && <EditBox label="Editar ou registrar a ata"><MeetingForm projectId={id} meeting={m} /></EditBox>}
+              {staff && <EditBox label="Editar encontro"><MeetingForm projectId={id} meeting={m} structuredMinutes={minutesBy.has(m.id)} /></EditBox>}
             </Card>
           ))}
           {staff && <EditBox label="Agendar novo encontro"><MeetingForm projectId={id} /></EditBox>}
