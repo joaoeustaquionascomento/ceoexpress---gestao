@@ -1,11 +1,15 @@
 import "server-only";
-import { PDFDocument, PDFFont, StandardFonts, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, PDFFont, rgb } from "pdf-lib";
+import serifBold from "./fontes/serif-bold";
+import serifRegular from "./fontes/serif-regular";
 import { parseBlocks, type Signatories, type Span } from "./markup";
 
 /**
  * Gera o PDF do contrato a partir do texto final (já com os campos trocados).
- * Usa as fontes padrão do PDF (Times), que cobrem os acentos do português;
- * caracteres fora delas viram equivalentes simples.
+ * A fonte (Liberation Serif, licença OFL) vai embutida no arquivo, para o
+ * contrato aparecer igual em qualquer leitor de PDF e no assinador do gov.br;
+ * caracteres que ela não tem viram equivalentes simples.
  */
 
 const A4 = { w: 595.28, h: 841.89 };
@@ -22,21 +26,21 @@ const TROCAS: Record<string, string> = {
 };
 
 function makeSanitizer(fonts: PDFFont[]) {
-  const ok = new Map<string, boolean>();
+  const sets = fonts.map((f) => new Set(f.getCharacterSet()));
+  const has = (ch: string) => sets.every((set) => set.has(ch.codePointAt(0)!));
   return (text: string) => {
     let out = "";
     for (const ch of text) {
       if (TROCAS[ch] !== undefined) { out += TROCAS[ch]; continue; }
-      let good = ok.get(ch);
-      if (good === undefined) {
-        good = fonts.every((f) => { try { f.widthOfTextAtSize(ch, 10); return true; } catch { return false; } });
-        ok.set(ch, good);
-      }
-      out += good ? ch : ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7e]/g, "?");
+      if (has(ch)) { out += ch; continue; }
+      const simple = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      out += simple && [...simple].every(has) ? simple : "?";
     }
     return out;
   };
 }
+
+const fromBase64 = (b64: string) => Uint8Array.from(Buffer.from(b64, "base64"));
 
 type Word = { text: string; bold: boolean; width: number; space: boolean };
 
@@ -48,8 +52,9 @@ export async function contractPdf(texto: string, sig: Signatories, meta: { title
   pdf.setCreator("CEOEXPRESS | Gestão Estratégica");
   pdf.setCreationDate(meta.createdAt);
   pdf.setModificationDate(meta.createdAt);
-  const regular = await pdf.embedFont(StandardFonts.TimesRoman);
-  const bold = await pdf.embedFont(StandardFonts.TimesRomanBold);
+  pdf.registerFontkit(fontkit);
+  const regular = await pdf.embedFont(fromBase64(serifRegular), { subset: true });
+  const bold = await pdf.embedFont(fromBase64(serifBold), { subset: true });
   const clean = makeSanitizer([regular, bold]);
 
   let page = pdf.addPage([A4.w, A4.h]);
@@ -184,7 +189,7 @@ export async function contractPdf(texto: string, sig: Signatories, meta: { title
         break;
       case "bullet": {
         need(LEADING);
-        page.drawText(clean("•"), { x: M.left + 8, y: y - LEADING + (LEADING - SIZE) / 2, size: SIZE, font: regular, color: INK });
+        page.drawText(clean(b.label ?? "•"), { x: M.left + 8, y: y - LEADING + (LEADING - SIZE) / 2, size: SIZE, font: regular, color: INK });
         drawWords(words(b.spans, SIZE), { size: SIZE, x: M.left + 22, width: WIDTH - 22, align: "justify", leading: LEADING });
         y -= 3;
         break;

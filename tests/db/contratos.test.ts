@@ -24,10 +24,16 @@ describe.skipIf(!ADMIN_URL)("banco: contratos", () => {
 
   afterAll(async () => t?.cleanup());
 
-  it("traz o modelo inicial e a linha de configurações", async () => {
-    const tpl = await t.as<{ title: string }>(u.admin, "select title from contract_templates");
-    expect(tpl.map((r) => r.title)).toEqual(["Contrato de prestação de serviços"]);
-    expect(await t.as(u.admin, "select id from contract_settings")).toHaveLength(1);
+  it("traz os três modelos da CEOEXPRESS (o genérico saiu) e a contratada padrão", async () => {
+    const tpl = await t.as<{ title: string; defaults: Record<string, unknown> }>(u.admin, "select title, defaults from contract_templates where active order by sort_order");
+    expect(tpl.map((r) => r.title)).toEqual([
+      "Consultoria em gestão estratégica e mentoria executiva",
+      "Assessoria estratégica com honorários mensais",
+      "Mentoria estratégica",
+    ]);
+    expect(tpl[0].defaults.testemunhas).toBe(true);
+    const [s] = await t.as<{ provider_name: string }>(u.admin, "select provider_name from contract_settings");
+    expect(s.provider_name).toBe("J Nascimento Serviços Ltda.");
   });
 
   it("só o administrador vê e grava modelos, configurações e contratos", async () => {

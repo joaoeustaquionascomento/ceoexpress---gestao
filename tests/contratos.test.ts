@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { PDFDocument } from "pdf-lib";
 import { describe, expect, it, vi } from "vitest";
 import {
+  aplicarSugestoes,
   calcularParcelas,
   contractDataSchema,
   defaultData,
@@ -92,7 +93,9 @@ describe("parcelas", () => {
   });
   it("cobra soma igual ao total", () => {
     const d = { ...preenchido(), parcelas: "15/06/2026 1.000,00" };
-    expect(pendenciasParaGerar(d, settings).join(" ")).toMatch(/soma das parcelas/);
+    expect(pendenciasParaGerar(d, settings, "{{parcelas}}").join(" ")).toMatch(/soma das parcelas/);
+    // modelo sem parcelas não cobra parcelas
+    expect(pendenciasParaGerar(d, settings, "{{honorarios}}").join(" ")).not.toMatch(/soma das parcelas/);
   });
 });
 
@@ -107,7 +110,7 @@ describe("montagem do contrato", () => {
     const tpl = seedTemplate();
     expect(tpl).not.toMatch(/FIQ|Éder|Eder|Nascimento/i);
     const d = preenchido();
-    expect(pendenciasParaGerar(d, settings)).toEqual([]);
+    expect(pendenciasParaGerar(d, settings, tpl)).toEqual([]);
     const { texto, faltando } = montarTexto(tpl, valoresDosCampos(d, settings));
     expect(faltando).toEqual([]);
     expect(texto).toContain("R$ 4.990,00 (quatro mil novecentos e noventa reais)");
@@ -141,5 +144,62 @@ describe("montagem do contrato", () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBeGreaterThanOrEqual(4);
     expect(doc.getTitle()).toBe("Contrato");
+  });
+});
+
+/** Os três modelos da CEOEXPRESS, lidos da migração (corpo + sugestões). */
+function modelosCeo() {
+  const sql = readFileSync(join(__dirname, "..", "supabase/migrations/20261123000100_contratos_modelos.sql"), "utf8");
+  const corpos = [...sql.matchAll(/\$tpl\$([\s\S]*?)\$tpl\$/g)].map((m) => m[1]);
+  const sugestoes = [...sql.matchAll(/jsonb_build_object\(([\s\S]*?)\n  \),\n  \$tpl\$/g)].map((m) => {
+    const out: Record<string, unknown> = {};
+    for (const x of m[1].matchAll(/'([a-z_]+)', (?:\$t\$([\s\S]*?)\$t\$|'([^']*)'|(\d+)|(true|false))/g)) {
+      out[x[1]] = x[2] ?? x[3] ?? (x[4] !== undefined ? Number(x[4]) : x[5] === "true");
+    }
+    return out;
+  });
+  return { sql, corpos, sugestoes };
+}
+
+describe("modelos da CEOEXPRESS", () => {
+  const { sql, corpos, sugestoes } = modelosCeo();
+
+  it("são três, sem dados de clientes", () => {
+    expect(corpos).toHaveLength(3);
+    expect(sugestoes).toHaveLength(3);
+    const semContratada = sql.slice(sql.indexOf("-- 1. Consultoria"));
+    expect(semContratada).not.toMatch(/\bFIQ\b|Izaque|Willian|Chen|Apartamento|Éder|Eder|Topázio|Piqueri|46\.715|37\.777|013\.779|21\.600|4\.990|3\.500|Tecnologia da Informação/i);
+  });
+
+  it("cada um sai completo depois de preencher o cliente, os valores e os trechos [PREENCHER]", async () => {
+    const { contractPdf } = await import("@/lib/contratos/pdf");
+    for (const [i, corpo] of corpos.entries()) {
+      let d = aplicarSugestoes(defaultData(settings, "2026-09-11"), sugestoes[i]);
+      const antes = pendenciasParaGerar({ ...d, tipo: "pj", pj_razao: "Cliente S.A.", pj_cnpj: "1", endereco: "Rua", rep_nome: "Maria" }, settings, corpo);
+      if (/PREENCHER/.test(JSON.stringify(sugestoes[i]))) expect(antes.join(" ")).toMatch(/PREENCHER/);
+      const limpar = (t: string) => t.replace(/\[PREENCHER:[^\]]*\]/g, "10");
+      d = contractDataSchema.parse({
+        ...d,
+        tipo: "pj", pj_razao: "Cliente S.A.", pj_cnpj: "11.111.111/0001-11", endereco: "Rua A, 1, Cidade/UF", rep_nome: "Maria Silva", rep_cargo: "sócia",
+        email: "m@example.com", data_inicio: "2026-09-11", data_termino: "2027-01-10",
+        valor_total: "1.000,00", parcelas: parcelasParaTexto(calcularParcelas(1000, 4, "2026-09-11")),
+        honorarios: limpar(d.honorarios), condicoes_especiais: limpar(d.condicoes_especiais), escopo: limpar(d.escopo),
+      });
+      expect(pendenciasParaGerar(d, settings, corpo)).toEqual([]);
+      const { texto, faltando } = montarTexto(corpo, valoresDosCampos(d, settings));
+      expect(faltando).toEqual([]);
+      expect(texto).not.toMatch(/\{\{|\[falta/);
+      expect(texto).toContain("Maria Silva");
+      const bytes = await contractPdf(texto, { contratada: { nome: "J", documento: "" }, contratante: { nome: "Cliente", documento: "" }, testemunhas: true }, { title: "t", code: "CT", createdAt: new Date(0) });
+      expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(2);
+    }
+  });
+
+  it("lê itens com letra", () => {
+    const b = parseBlocks("a) primeiro;\nb) segundo");
+    expect(b).toEqual([
+      { kind: "bullet", label: "a)", spans: [{ text: "primeiro;", bold: false }] },
+      { kind: "bullet", label: "b)", spans: [{ text: "segundo", bold: false }] },
+    ]);
   });
 });

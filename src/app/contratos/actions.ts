@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import {
+  CAMPOS_SUGERIDOS,
   contractDataSchema,
   documentoContratante,
   nomeContratante,
@@ -66,6 +67,22 @@ const templateSchema = z.object({
   active: z.boolean(),
 });
 
+/** Textos e valores sugeridos do modelo: só o que foi preenchido. */
+function defaultsFrom(form: FormData) {
+  const raw: Record<string, unknown> = {};
+  for (const k of CAMPOS_SUGERIDOS) raw[k] = form.get(`def_${k}`) ?? "";
+  raw.testemunhas = form.get("def_testemunhas") === "on";
+  const parsed = contractDataSchema.partial().parse(raw);
+  const out: Record<string, unknown> = {};
+  for (const k of CAMPOS_SUGERIDOS) {
+    const v = parsed[k];
+    const filled = form.get(`def_${k}`);
+    if (k === "testemunhas") out[k] = v === true;
+    else if (typeof v === "string" ? v !== "" : filled !== null && String(filled).trim() !== "") out[k] = v;
+  }
+  return out;
+}
+
 export async function saveTemplate(_: FormResult, form: FormData): Promise<FormResult> {
   const supabase = await admin();
   const parsed = templateSchema.safeParse({
@@ -75,12 +92,13 @@ export async function saveTemplate(_: FormResult, form: FormData): Promise<FormR
     active: form.get("active") === "on",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
+  const row = { ...parsed.data, defaults: defaultsFrom(form) };
   const id = uuid.safeParse(form.get("templateId"));
   if (id.success) {
-    const { error } = await supabase.from("contract_templates").update(parsed.data).eq("id", id.data);
+    const { error } = await supabase.from("contract_templates").update(row).eq("id", id.data);
     if (error) return { error: "Não foi possível salvar o modelo." };
   } else {
-    const { error } = await supabase.from("contract_templates").insert(parsed.data);
+    const { error } = await supabase.from("contract_templates").insert(row);
     if (error) return { error: "Não foi possível criar o modelo." };
   }
   refresh();
@@ -182,7 +200,7 @@ export async function generatePdf(_: FormResult, form: FormData): Promise<FormRe
   ]);
   if (!tpl.data) return { error: "O modelo deste contrato não existe mais. Escolha outro em Editar dados." };
 
-  const pend = pendenciasParaGerar(c.data, settings);
+  const pend = pendenciasParaGerar(c.data, settings, tpl.data.body);
   if (pend.length) return { error: "Faltam informações para gerar o PDF:", pendencias: pend };
 
   const { texto, faltando } = montarTexto(tpl.data.body, valoresDosCampos(c.data, settings));
