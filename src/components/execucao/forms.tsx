@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import {
   addActionComment,
+  addDecisionSteps,
   changeActionStatus,
   quickUpdateAction,
   saveAction,
@@ -162,6 +163,13 @@ export function ActionForm({
             <input id="owner_label" name="owner_label" defaultValue={v("owner_label")} className={inputClass} maxLength={200} />
           </Field>
         </div>
+        <Field label="De que lado é esta ação?" name="side" hint="Ajuda a separar o que a consultoria faz do que o cliente faz.">
+          <select id="side" name="side" defaultValue={v("side")} className={inputClass}>
+            <option value="">Não informado</option>
+            <option value="consultoria">Consultoria</option>
+            <option value="cliente">Cliente</option>
+          </select>
+        </Field>
         <Field label="4. Quem decide?" name="approver_id">
           <select id="approver_id" name="approver_id" defaultValue={v("approver_id")} className={inputClass}>
             <option value="">Não definido</option>
@@ -302,6 +310,46 @@ export function MilestoneForm({ projectId, milestone }: { projectId: string; mil
   );
 }
 
+const KIND_OPTIONS: [string, string, string][] = [
+  ["decisao", "Decisão", "Algo a decidir ou já decidido, como contratar uma ferramenta ou serviço."],
+  ["proposta", "Proposta para avaliar", "Proposta recebida de fornecedor ou parceiro, para ler com calma e decidir depois."],
+  ["alinhamento", "Alinhamento", "O que foi combinado numa reunião ou conselho, com os próximos passos de cada lado."],
+  ["lacuna", "Lacuna", "Informação que falta e precisa ser apurada."],
+  ["hipotese", "Hipótese", "Suposição a ser confirmada."],
+  ["premissa", "Premissa", "Ponto de partida aceito por todos."],
+];
+
+/** Duas caixas de próximos passos: cada linha vira uma ação do plano (AP). */
+function StepsFields({ p }: { p: string }) {
+  return (
+    <fieldset className="space-y-3 rounded-lg border border-line p-3">
+      <legend className="px-1 text-sm font-semibold text-plum">Próximos passos (viram ações do plano)</legend>
+      <p className="text-xs text-muted">Escreva um passo por linha. Cada linha vira uma ação (AP) ligada a este registro.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Field label="Da consultoria" name={`${p}sc`}>
+            <textarea id={`${p}sc`} name="steps_consultoria" rows={3} className={inputClass} placeholder={"Ex.: Enviar a apresentação\nFormalizar a proposta"} />
+          </Field>
+          <Field label="Responsável na consultoria (opcional)" name={`${p}oc`}>
+            <input id={`${p}oc`} name="steps_owner_consultoria" maxLength={200} className={inputClass} />
+          </Field>
+        </div>
+        <div className="space-y-2">
+          <Field label="Do cliente" name={`${p}scl`}>
+            <textarea id={`${p}scl`} name="steps_cliente" rows={3} className={inputClass} placeholder={"Ex.: Treinar a equipe nos produtos\nGravar um vídeo da operação"} />
+          </Field>
+          <Field label="Responsável no cliente (opcional)" name={`${p}ocl`}>
+            <input id={`${p}ocl`} name="steps_owner_cliente" maxLength={200} className={inputClass} />
+          </Field>
+        </div>
+      </div>
+      <Field label="Prazo dos passos (opcional)" name={`${p}sdue`}>
+        <input id={`${p}sdue`} name="steps_due_on" type="date" className={inputClass} />
+      </Field>
+    </fieldset>
+  );
+}
+
 export function DecisionForm({
   projectId, decision, meetings,
 }: { projectId: string; decision?: Record<string, unknown>; meetings: { id: string; label: string }[] }) {
@@ -309,44 +357,66 @@ export function DecisionForm({
   const v = (k: string) => (decision?.[k] as string | null | undefined) ?? "";
   const p = decision ? `d-${String(decision.id)}-` : "d-new-";
   return (
-    <form action={action} className="space-y-3" key={decision ? undefined : state?.ok}>
+    <form action={action} className="space-y-3" key={state?.ok}>
       <Feedback state={state} />
       <input type="hidden" name="projectId" value={projectId} />
       {decision && <input type="hidden" name="id" value={String(decision.id)} />}
+      <Field label="Tipo de registro" name={`${p}kind`}>
+        <select id={`${p}kind`} name="kind" defaultValue={v("kind") || "decisao"} className={inputClass}>
+          {KIND_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
+      </Field>
+      <ul className="space-y-0.5 text-xs text-muted">
+        {KIND_OPTIONS.slice(0, 3).map(([value, label, hint]) => <li key={value}><span className="font-semibold">{label}:</span> {hint}</li>)}
+      </ul>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Código" name={`${p}code`}>
+        <Field label="Código" name={`${p}code`} hint="Em branco, o sistema numera (RG-01…).">
           <input id={`${p}code`} name="code" defaultValue={v("code")} className={inputClass} maxLength={20} />
         </Field>
-        <Field label="Tipo" name={`${p}kind`}>
-          <select id={`${p}kind`} name="kind" defaultValue={v("kind") || "decisao"} className={inputClass}>
-            <option value="decisao">Decisão</option>
-            <option value="lacuna">Lacuna</option>
-            <option value="hipotese">Hipótese</option>
-            <option value="premissa">Premissa</option>
-          </select>
+        <Field label="Assunto" name={`${p}topic`} hint="Agrupa registros. Ex.: Vendas, Tecnologia.">
+          <input id={`${p}topic`} name="topic" defaultValue={v("topic")} className={inputClass} maxLength={200} />
         </Field>
         <Field label="Situação" name={`${p}status`}>
           <select id={`${p}status`} name="status" defaultValue={v("status") || "aguardando"} className={inputClass}>
             <option value="aguardando">Aguardando</option>
+            <option value="em_avaliacao">Em avaliação</option>
             <option value="a_apurar">A apurar</option>
+            <option value="adiada">Adiada (no radar)</option>
             <option value="aprovada">Aprovada</option>
             <option value="rejeitada">Rejeitada</option>
             <option value="resolvida">Resolvida</option>
           </select>
         </Field>
       </div>
-      <Field label="Descrição" name={`${p}summary`}>
+      <Field label="Resumo" name={`${p}summary`} hint="Uma ou duas linhas. Ex.: Contratar assinatura digital com integração ao sistema.">
         <textarea id={`${p}summary`} name="summary" rows={2} required defaultValue={v("summary")} className={inputClass} />
       </Field>
-      <Field label="Fundamento" name={`${p}basis`}>
+      <Field label="Texto completo" name={`${p}details`} hint="Pode colar aqui a mensagem, o e-mail ou o que foi combinado, do jeito que chegou.">
+        <textarea id={`${p}details`} name="details" rows={5} defaultValue={v("details")} className={inputClass} maxLength={20000} />
+      </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Link" name={`${p}link`} hint="Site da proposta, do fornecedor ou do documento.">
+          <input id={`${p}link`} name="link_url" type="text" inputMode="url" defaultValue={v("link_url")} className={inputClass} maxLength={1000} placeholder="https://" />
+        </Field>
+        <Field label="Quem trouxe" name={`${p}source`} hint="Fornecedor, parceiro ou pessoa.">
+          <input id={`${p}source`} name="source" defaultValue={v("source")} className={inputClass} maxLength={200} />
+        </Field>
+      </div>
+      <Field label="Custo estimado ou condições" name={`${p}cost`} hint="Ex.: planos e valores, forma de pagamento, desconto pedido.">
+        <textarea id={`${p}cost`} name="cost_note" rows={2} defaultValue={v("cost_note")} className={inputClass} maxLength={2000} />
+      </Field>
+      <Field label="Fundamento" name={`${p}basis`} hint="Por que decidir assim, ou o que pesa na avaliação.">
         <textarea id={`${p}basis`} name="basis" rows={2} defaultValue={v("basis")} className={inputClass} />
       </Field>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Quem decide ou apura" name={`${p}by`}>
           <input id={`${p}by`} name="decided_by" defaultValue={v("decided_by")} className={inputClass} />
         </Field>
         <Field label="Prazo" name={`${p}due`}>
           <input id={`${p}due`} name="due_on" type="date" defaultValue={v("due_on")} className={inputClass} />
+        </Field>
+        <Field label="Revisar em" name={`${p}review`} hint="Para deixar no radar.">
+          <input id={`${p}review`} name="review_on" type="date" defaultValue={v("review_on")} className={inputClass} />
         </Field>
         <Field label="Decidido em" name={`${p}on`}>
           <input id={`${p}on`} name="decided_on" type="date" defaultValue={v("decided_on")} className={inputClass} />
@@ -360,10 +430,26 @@ export function DecisionForm({
           </select>
         </Field>
       )}
+      {!decision && <StepsFields p={p} />}
       <label className="flex min-h-11 items-center gap-2 text-sm">
         <input type="checkbox" name="internal" defaultChecked={decision ? decision.visibility === "internal" : true} className="h-5 w-5 accent-[var(--plum)]" /> Interno (o cliente não vê)
       </label>
+      <p className="text-xs text-muted">As ações criadas pelos próximos passos seguem essa mesma opção: internas se o registro for interno.</p>
       <SubmitButton pendingText="Salvando…">{decision ? "Salvar registro" : "Criar registro"}</SubmitButton>
+    </form>
+  );
+}
+
+/** Acrescenta próximos passos (ações do plano) a um registro existente. */
+export function DecisionStepsForm({ projectId, decisionId }: { projectId: string; decisionId: string }) {
+  const [state, action] = useActionState(addDecisionSteps, undefined);
+  return (
+    <form action={action} className="space-y-3" key={state?.ok}>
+      <Feedback state={state} />
+      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="decisionId" value={decisionId} />
+      <StepsFields p={`ds-${decisionId}-`} />
+      <SubmitButton pendingText="Criando…">Criar ações no plano</SubmitButton>
     </form>
   );
 }

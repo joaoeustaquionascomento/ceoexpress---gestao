@@ -345,7 +345,7 @@ export function ruleProjectReport(d: ProjectData): ReportContent {
   const blocked = open.filter((a) => a.status === "bloqueada");
   const noOwner = open.filter((a) => !a.has_owner);
   const noDue = open.filter((a) => !a.due_on);
-  const decPending = decisions.filter((x) => x.status === "aguardando" || x.status === "a_apurar");
+  const decPending = decisions.filter((x) => x.status === "aguardando" || x.status === "a_apurar" || x.status === "em_avaliacao");
 
   const readings = tools.map((t) => ({ t, r: readTool(t, actions.filter((a) => a.source_tool_id === t.id)) })).filter((x) => !x.r.vazia);
 

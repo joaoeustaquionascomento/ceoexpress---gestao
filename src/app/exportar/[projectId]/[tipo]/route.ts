@@ -68,15 +68,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ project
   } else {
     const { data, error } = await supabase
       .from("decisions")
-      .select("code, kind, summary, basis, decided_by, due_on, status, decided_on, visibility")
+      .select("code, kind, topic, summary, source, link_url, cost_note, basis, decided_by, due_on, review_on, status, decided_on, visibility")
       .eq("project_id", projectId)
       .order("code", { nullsFirst: false })
       .order("created_at");
     if (error) return failed(error);
-    header = ["Código", "Tipo", "Resumo", "Fundamento", "Quem decide", "Prazo", "Status", "Decidido em", "Visibilidade"];
+    header = ["Código", "Tipo", "Assunto", "Resumo", "Quem trouxe", "Link", "Custo ou condições", "Fundamento", "Quem decide", "Prazo", "Revisar em", "Status", "Decidido em", "Visibilidade"];
     rows = (data ?? []).map((d) => [
-      d.code, DECISION_KIND[d.kind] ?? d.kind, d.summary, d.basis, d.decided_by, date(d.due_on),
-      DECISION_STATUS[d.status] ?? d.status, date(d.decided_on), vis(d.visibility),
+      d.code, DECISION_KIND[d.kind] ?? d.kind, d.topic, d.summary, d.source, d.link_url, d.cost_note, d.basis, d.decided_by,
+      date(d.due_on), date(d.review_on), DECISION_STATUS[d.status] ?? d.status, date(d.decided_on), vis(d.visibility),
     ]);
   }
 

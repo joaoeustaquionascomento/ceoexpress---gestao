@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { nextCode } from "@/lib/codigos";
+import { splitSteps } from "@/lib/registros";
 import { createClient } from "@/lib/supabase/server";
 import { getProjectAccess } from "@/lib/access";
 
@@ -64,6 +65,7 @@ const actionSchema = z.object({
   priority: z.enum(["baixa", "media", "alta", "critica"]).catch("media"),
   executor_id: optUuid,
   owner_label: optText(200),
+  side: z.enum(["consultoria", "cliente"]).nullable().catch(null),
   approver_id: optUuid,
   decision_inputs: optText(4000),
   starts_on: optDate,
@@ -101,6 +103,7 @@ export async function saveAction(_: FormResult, form: FormData): Promise<FormRes
     priority: d.priority,
     executor_id: d.executor_id,
     owner_label: d.owner_label,
+    side: d.side,
     approver_id: d.approver_id,
     decision_inputs: d.decision_inputs,
     starts_on: d.starts_on,
@@ -273,6 +276,15 @@ export async function saveMilestone(_: FormResult, form: FormData): Promise<Form
   return { ok: id ? "Marco atualizado." : "Marco criado." };
 }
 
+const DECISION_KINDS = ["decisao", "lacuna", "hipotese", "premissa", "proposta", "alinhamento"] as const;
+const DECISION_STATUSES = ["aguardando", "a_apurar", "em_avaliacao", "adiada", "aprovada", "rejeitada", "resolvida"] as const;
+const optUrl = z
+  .string()
+  .trim()
+  .max(1000)
+  .transform((v) => (v === "" ? null : /^https?:\/\//i.test(v) ? v : `https://${v}`))
+  .pipe(z.string().url("O link parece inválido. Cole o endereço completo.").nullable());
+
 export async function saveDecision(_: FormResult, form: FormData): Promise<FormResult> {
   const ctx = await staffContext(form);
   if (!ctx) return { error: "Só a consultoria edita o registro de decisões." };
@@ -280,14 +292,20 @@ export async function saveDecision(_: FormResult, form: FormData): Promise<FormR
     .object({
       id: optUuid,
       code: optText(20),
-      kind: z.enum(["decisao", "lacuna", "hipotese", "premissa"]).catch("decisao"),
-      summary: z.string().trim().min(3, "Descreva a decisão.").max(2000),
+      kind: z.enum(DECISION_KINDS).catch("decisao"),
+      summary: z.string().trim().min(3, "Escreva um resumo do registro.").max(2000),
       basis: optText(4000),
       decided_by: optText(200),
       due_on: optDate,
-      status: z.enum(["aguardando", "a_apurar", "aprovada", "rejeitada", "resolvida"]).catch("aguardando"),
+      status: z.enum(DECISION_STATUSES).catch("aguardando"),
       decided_on: optDate,
       meeting_id: optUuid,
+      topic: optText(200),
+      details: optText(20000),
+      link_url: optUrl,
+      source: optText(200),
+      cost_note: optText(2000),
+      review_on: optDate,
       visibility: z.enum(["client", "internal"]).catch("client"),
     })
     .safeParse({
@@ -301,17 +319,102 @@ export async function saveDecision(_: FormResult, form: FormData): Promise<FormR
       status: form.get("status"),
       decided_on: form.get("decided_on") || null,
       meeting_id: form.get("meeting_id") || null,
+      topic: form.get("topic") ?? "",
+      details: form.get("details") ?? "",
+      link_url: String(form.get("link_url") ?? ""),
+      source: form.get("source") ?? "",
+      cost_note: form.get("cost_note") ?? "",
+      review_on: form.get("review_on") || null,
       visibility: form.get("internal") === "on" ? "internal" : "client",
     });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Confira os campos." };
   const { id, ...fields } = parsed.data;
+  if (!id && !fields.code) {
+    const { data: codes } = await ctx.supabase.from("decisions").select("code").eq("project_id", ctx.projectId);
+    fields.code = nextCode("RG", (codes ?? []).map((c) => c.code));
+  }
   const q = id
-    ? ctx.supabase.from("decisions").update(fields).eq("id", id).eq("project_id", ctx.projectId)
-    : ctx.supabase.from("decisions").insert({ ...fields, project_id: ctx.projectId, company_id: ctx.companyId, created_by: ctx.access.userId });
-  const { error } = await q;
-  if (error) return { error: "Não foi possível salvar o registro." };
+    ? ctx.supabase.from("decisions").update(fields).eq("id", id).eq("project_id", ctx.projectId).select("id").single()
+    : ctx.supabase
+        .from("decisions")
+        .insert({ ...fields, project_id: ctx.projectId, company_id: ctx.companyId, created_by: ctx.access.userId })
+        .select("id")
+        .single();
+  const { data: saved, error } = await q;
+  if (error || !saved) return { error: "Não foi possível salvar o registro." };
+
+  // Próximos passos escritos já no cadastro viram ações do plano.
+  const created = await createSteps(ctx, saved.id, fields.visibility, form);
+  if ("error" in created) return { error: `Registro salvo, mas ${created.error}` };
   refreshProject(ctx.projectId);
-  return { ok: id ? "Registro atualizado." : "Registro criado." };
+  const extra = created.count ? ` ${created.count === 1 ? "1 ação criada" : `${created.count} ações criadas`} no plano.` : "";
+  return { ok: (id ? "Registro atualizado." : "Registro criado.") + extra };
+}
+
+async function createSteps(
+  ctx: NonNullable<Awaited<ReturnType<typeof staffContext>>>,
+  decisionId: string,
+  visibility: "client" | "internal",
+  form: FormData,
+): Promise<{ count: number } | { error: string }> {
+  const due = optDate.parse(form.get("steps_due_on") || null);
+  const consultoria = splitSteps(String(form.get("steps_consultoria") ?? ""));
+  const cliente = splitSteps(String(form.get("steps_cliente") ?? ""));
+  const labelConsultoria = optText(200).parse(form.get("steps_owner_consultoria"));
+  const labelCliente = optText(200).parse(form.get("steps_owner_cliente"));
+  const steps = [
+    ...consultoria.map((title) => ({ title, side: "consultoria" as const, owner_label: labelConsultoria })),
+    ...cliente.map((title) => ({ title, side: "cliente" as const, owner_label: labelCliente })),
+  ];
+  if (steps.length === 0) return { count: 0 };
+
+  const [{ data: decision }, { data: codes }] = await Promise.all([
+    ctx.supabase.from("decisions").select("code, summary").eq("id", decisionId).single(),
+    ctx.supabase.from("action_items").select("code").eq("project_id", ctx.projectId),
+  ]);
+  const used = (codes ?? []).map((a) => a.code as string | null);
+  const origin = decision ? `Origem: ${decision.code ? `${decision.code} · ` : ""}${decision.summary}`.slice(0, 4000) : null;
+  const rows = steps.map((s) => {
+    const code = nextCode("AP", used);
+    used.push(code);
+    return {
+      code,
+      kind: "tarefa" as const,
+      title: s.title,
+      rationale: origin,
+      owner_label: s.owner_label,
+      due_on: due,
+      side: s.side,
+      decision_id: decisionId,
+      visibility,
+      project_id: ctx.projectId,
+      company_id: ctx.companyId,
+      created_by: ctx.access.userId,
+    };
+  });
+  const { error } = await ctx.supabase.from("action_items").insert(rows);
+  if (error) return { error: "não foi possível criar as ações dos próximos passos." };
+  return { count: rows.length };
+}
+
+/** Acrescenta próximos passos a um registro que já existe. */
+export async function addDecisionSteps(_: FormResult, form: FormData): Promise<FormResult> {
+  const ctx = await staffContext(form);
+  if (!ctx) return { error: "Só a consultoria cria ações do plano." };
+  const decisionId = uuid.safeParse(form.get("decisionId"));
+  if (!decisionId.success) return { error: "Registro inválido." };
+  const { data: decision } = await ctx.supabase
+    .from("decisions")
+    .select("id, visibility")
+    .eq("id", decisionId.data)
+    .eq("project_id", ctx.projectId)
+    .maybeSingle();
+  if (!decision) return { error: "Registro não encontrado." };
+  const created = await createSteps(ctx, decision.id, decision.visibility, form);
+  if ("error" in created) return { error: created.error.charAt(0).toUpperCase() + created.error.slice(1) };
+  if (created.count === 0) return { error: "Escreva pelo menos um próximo passo (um por linha)." };
+  refreshProject(ctx.projectId);
+  return { ok: created.count === 1 ? "1 ação criada no plano." : `${created.count} ações criadas no plano.` };
 }
 
 /** Edição rápida (lista e Kanban): só quem executa e prazo. */

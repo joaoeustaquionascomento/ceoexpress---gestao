@@ -7,6 +7,7 @@ import { ACTION_STATUS, formatDate } from "@/lib/status";
 import {
   ACTION_STATUSES,
   PRIORITY,
+  SIDE,
   executorName,
   getPlan,
   getProjectHeader,
@@ -190,6 +191,7 @@ function ListView({
             <div className="flex flex-wrap gap-1 px-1">
               <Badge tone={statusTone(a.status)}>{ACTION_STATUS[a.status]}</Badge>
               <Badge tone={PRIORITY[a.priority]?.tone}>{PRIORITY[a.priority]?.label}</Badge>
+              {a.side && <Badge tone="neutral">{SIDE[a.side]}</Badge>}
               {waiting.has(a.id) && <Badge tone="warn">Aguardando outra ação</Badge>}
             </div>
             {quick(a)}
@@ -215,6 +217,7 @@ function ListView({
                   <Link href={`${base}/acoes/${a.id}`} className="font-semibold text-ink hover:text-mauve">
                     {a.code ? `${a.code} · ` : ""}{a.title}
                   </Link>
+                  {a.side && <span className="ml-2"><Badge tone="neutral">{SIDE[a.side]}</Badge></span>}
                   {a.visibility === "internal" && <span className="ml-2"><Badge tone="warn">Interna</Badge></span>}
                   {waiting.has(a.id) && <span className="ml-2"><Badge tone="warn">Aguardando outra ação</Badge></span>}
                 </td>

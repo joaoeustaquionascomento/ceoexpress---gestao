@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { Badge, BackLink, Card, EmptyState, PageTitle } from "@/components/ui";
-import { DecisionForm, MeetingForm, MilestoneForm } from "@/components/execucao/forms";
+import Link from "next/link";
+import { DecisionForm, DecisionStepsForm, MeetingForm, MilestoneForm } from "@/components/execucao/forms";
 import { getProjectAccess } from "@/lib/access";
 import { formatDate } from "@/lib/status";
-import { DECISION_KIND, DECISION_STATUS, getAgenda, getProjectHeader, today, type Area } from "@/lib/execucao";
+import { ACTION_STATUS } from "@/lib/status";
+import { DECISION_KIND, DECISION_STATUS, SIDE, getAgenda, getProjectHeader, today, type Area } from "@/lib/execucao";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -21,7 +23,7 @@ export async function AgendaPage({ area, params }: { area: Area; params: Promise
   if (!UUID.test(id)) notFound();
   const [header, access] = await Promise.all([getProjectHeader(id), getProjectAccess(id)]);
   if (!header || !access) notFound();
-  const { meetings, milestones, decisions } = await getAgenda(id);
+  const { meetings, milestones, decisions, stepsByDecision } = await getAgenda(id);
   const base = `/${area}/projetos/${id}`;
   const staff = access.staff;
   const now = today();
@@ -87,30 +89,80 @@ export async function AgendaPage({ area, params }: { area: Area; params: Promise
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-plum">Registro de decisões</h2>
-          {!staff && <p className="text-sm text-muted">Decisões, lacunas, hipóteses e premissas que a consultoria compartilhou com você.</p>}
+          <h2 className="text-lg font-semibold text-plum">Decisões, propostas e alinhamentos</h2>
+          <p className="text-sm text-muted">
+            {staff
+              ? "Registre propostas recebidas para avaliar, o que foi combinado em reuniões e o que falta decidir. Os próximos passos viram ações do plano."
+              : "Decisões, propostas e alinhamentos que a consultoria compartilhou com você."}
+          </p>
+          {staff && <EditBox label="Novo registro"><DecisionForm projectId={id} meetings={meetingOptions} /></EditBox>}
           {decisions.length === 0 && (
             <EmptyState>{staff ? "Nenhum registro." : "A consultoria ainda não compartilhou nenhum registro com você."}</EmptyState>
           )}
-          {decisions.map((d) => (
-            <div key={d.id} className="rounded-xl border border-line bg-surface p-4 text-sm">
-              <p className="text-xs font-semibold text-rose">
-                {d.code ? `${d.code} · ` : ""}{DECISION_KIND[d.kind] ?? d.kind}
-                {d.decided_by ? ` · ${d.decided_by}` : ""}
-                {d.due_on ? ` · prazo ${formatDate(d.due_on)}` : ""}
-              </p>
-              <p className="font-semibold">{d.summary}</p>
-              {d.basis && <p className="text-muted">{d.basis}</p>}
-              <div className="mt-2 flex flex-wrap gap-1">
-                <Badge tone={d.status === "aprovada" || d.status === "resolvida" ? "ok" : d.status === "rejeitada" ? "bad" : "neutral"}>
-                  {DECISION_STATUS[d.status] ?? d.status}{d.decided_on ? ` em ${formatDate(d.decided_on)}` : ""}
-                </Badge>
-                {d.visibility === "internal" && <Badge tone="warn">Interno</Badge>}
+          {decisions.map((d) => {
+            const steps = stepsByDecision[d.id] ?? [];
+            const reviewDue = d.review_on && d.review_on <= now && !["aprovada", "rejeitada", "resolvida"].includes(d.status);
+            return (
+              <div key={d.id} className="rounded-xl border border-line bg-surface p-4 text-sm">
+                <p className="text-xs font-semibold text-rose">
+                  {d.code ? `${d.code} · ` : ""}{DECISION_KIND[d.kind] ?? d.kind}
+                  {d.topic ? ` · ${d.topic}` : ""}
+                  {d.decided_by ? ` · ${d.decided_by}` : ""}
+                  {d.due_on ? ` · prazo ${formatDate(d.due_on)}` : ""}
+                </p>
+                <p className="font-semibold">{d.summary}</p>
+                {d.source && <p className="text-muted">Trazido por: {d.source}</p>}
+                {d.link_url && (
+                  <p>
+                    <a href={d.link_url} target="_blank" rel="noopener noreferrer" className="break-all font-semibold text-mauve hover:text-plum">
+                      Abrir link ↗
+                    </a>
+                  </p>
+                )}
+                {d.cost_note && <p className="mt-1 whitespace-pre-line text-muted">Custo ou condições: {d.cost_note}</p>}
+                {d.basis && <p className="mt-1 text-muted">{d.basis}</p>}
+                {d.details && (
+                  <details className="mt-2 rounded-lg bg-canvas px-3">
+                    <summary className="min-h-10 cursor-pointer py-2 font-semibold text-plum">Texto completo</summary>
+                    <p className="whitespace-pre-line pb-3">{d.details}</p>
+                  </details>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <Badge tone={d.status === "aprovada" || d.status === "resolvida" ? "ok" : d.status === "rejeitada" ? "bad" : d.status === "em_avaliacao" ? "info" : "neutral"}>
+                    {DECISION_STATUS[d.status] ?? d.status}{d.decided_on ? ` em ${formatDate(d.decided_on)}` : ""}
+                  </Badge>
+                  {d.review_on && (
+                    <Badge tone={reviewDue ? "warn" : "neutral"}>{reviewDue ? "Hora de revisar" : `Revisar em ${formatDate(d.review_on)}`}</Badge>
+                  )}
+                  {d.visibility === "internal" && <Badge tone="warn">Interno</Badge>}
+                </div>
+                {steps.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">Próximos passos no plano</p>
+                    <ul className="mt-1 space-y-1">
+                      {steps.map((s) => (
+                        <li key={s.id} className="flex flex-wrap items-center gap-2">
+                          <Link href={`${base}/acoes/${s.id}`} className="font-semibold text-ink hover:text-mauve">
+                            {s.code ? `${s.code} · ` : ""}{s.title}
+                          </Link>
+                          {s.side && <Badge tone="neutral">{SIDE[s.side] ?? s.side}</Badge>}
+                          <Badge tone={s.status === "concluida" ? "ok" : s.status === "bloqueada" ? "bad" : "neutral"}>
+                            {ACTION_STATUS[s.status as keyof typeof ACTION_STATUS] ?? s.status}
+                          </Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {staff && (
+                  <>
+                    <EditBox label="Acrescentar próximos passos"><DecisionStepsForm projectId={id} decisionId={d.id} /></EditBox>
+                    <EditBox label="Editar registro"><DecisionForm projectId={id} decision={d} meetings={meetingOptions} /></EditBox>
+                  </>
+                )}
               </div>
-              {staff && <EditBox label="Editar registro"><DecisionForm projectId={id} decision={d} meetings={meetingOptions} /></EditBox>}
-            </div>
-          ))}
-          {staff && <EditBox label="Novo registro"><DecisionForm projectId={id} meetings={meetingOptions} /></EditBox>}
+            );
+          })}
         </section>
       </div>
     </>

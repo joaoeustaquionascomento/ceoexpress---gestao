@@ -26,11 +26,30 @@ export const DECISION_KIND: Record<string, string> = {
   lacuna: "Lacuna",
   hipotese: "Hipótese",
   premissa: "Premissa",
+  proposta: "Proposta para avaliar",
+  alinhamento: "Alinhamento",
+};
+
+/** Ajuda curta de cada tipo de registro (aparece no formulário). */
+export const DECISION_KIND_HINT: Record<string, string> = {
+  decisao: "Algo que precisa ser decidido ou já foi decidido (ex.: contratar uma ferramenta).",
+  lacuna: "Uma informação que falta e precisa ser apurada.",
+  hipotese: "Uma suposição a ser confirmada.",
+  premissa: "Um ponto de partida aceito por todos.",
+  proposta: "Uma proposta recebida de fornecedor ou parceiro para avaliar com calma.",
+  alinhamento: "O que foi combinado numa reunião ou conselho, com os próximos passos.",
+};
+
+export const SIDE: Record<string, string> = {
+  consultoria: "Consultoria",
+  cliente: "Cliente",
 };
 
 export const DECISION_STATUS: Record<string, string> = {
   aguardando: "Aguardando",
   a_apurar: "A apurar",
+  em_avaliacao: "Em avaliação",
+  adiada: "Adiada (no radar)",
   aprovada: "Aprovada",
   rejeitada: "Rejeitada",
   resolvida: "Resolvida",
@@ -50,6 +69,7 @@ export type PlanAction = {
   executor_id: string | null;
   objective_id: string | null;
   visibility: "client" | "internal";
+  side: "consultoria" | "cliente" | null;
   executor: { full_name: string } | null;
 };
 
@@ -82,7 +102,7 @@ export async function getPlan(projectId: string) {
     supabase
       .from("action_items")
       .select(
-        "id, code, kind, title, rationale, priority, status, due_on, starts_on, owner_label, executor_id, objective_id, visibility, executor:profiles!action_items_executor_id_fkey(full_name)",
+        "id, code, kind, title, rationale, priority, status, due_on, starts_on, owner_label, executor_id, objective_id, visibility, side, executor:profiles!action_items_executor_id_fkey(full_name)",
       )
       .eq("project_id", projectId)
       .order("code", { nullsFirst: false })
@@ -198,7 +218,7 @@ export async function getActionOptions(projectId: string) {
 
 export async function getAgenda(projectId: string) {
   const supabase = await createClient();
-  const [meetings, milestones, decisions] = await Promise.all([
+  const [meetings, milestones, decisions, linked] = await Promise.all([
     supabase
       .from("meetings")
       .select("id, scheduled_on, start_time, title, agenda, expected_output, minutes, held, visibility")
@@ -207,14 +227,28 @@ export async function getAgenda(projectId: string) {
     supabase.from("milestones").select("id, name, planned_on, achieved_on").eq("project_id", projectId).order("planned_on"),
     supabase
       .from("decisions")
-      .select("id, code, kind, summary, basis, decided_by, due_on, status, decided_on, visibility, meeting_id")
+      .select(
+        "id, code, kind, summary, basis, decided_by, due_on, status, decided_on, visibility, meeting_id, topic, details, link_url, source, cost_note, review_on",
+      )
       .eq("project_id", projectId)
       .order("code", { nullsFirst: false })
       .order("created_at"),
+    supabase
+      .from("action_items")
+      .select("id, code, title, status, side, due_on, owner_label, decision_id")
+      .eq("project_id", projectId)
+      .not("decision_id", "is", null)
+      .order("code"),
   ]);
+  const stepsByDecision: Record<string, NonNullable<typeof linked.data>> = {};
+  for (const a of linked.data ?? []) {
+    if (!a.decision_id) continue;
+    (stepsByDecision[a.decision_id] ??= []).push(a);
+  }
   return {
     meetings: meetings.data ?? [],
     milestones: milestones.data ?? [],
     decisions: decisions.data ?? [],
+    stepsByDecision,
   };
 }

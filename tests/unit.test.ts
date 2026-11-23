@@ -74,3 +74,26 @@ describe("CNPJ", async () => {
     expect(formatCnpj("12345678000190")).toBe("12.345.678/0001-90");
   });
 });
+
+import { splitSteps } from "@/lib/registros";
+import { nextCode } from "@/lib/codigos";
+
+describe("Próximos passos de um registro", () => {
+  it("separa um passo por linha e tira marcadores", () => {
+    expect(splitSteps("- Enviar a apresentação\n• Formalizar o comissionamento\n\n1. Treinar a equipe\n2) Gravar vídeo\nok")).toEqual([
+      "Enviar a apresentação",
+      "Formalizar o comissionamento",
+      "Treinar a equipe",
+      "Gravar vídeo",
+    ]);
+    expect(splitSteps("")).toEqual([]);
+    expect(splitSteps("a\r\nPasso com CRLF\r\n")).toEqual(["Passo com CRLF"]);
+  });
+  it("limita a 30 passos", () => {
+    expect(splitSteps(Array.from({ length: 40 }, (_, i) => `Passo ${i}`).join("\n"))).toHaveLength(30);
+  });
+  it("numera registros como RG-01, RG-02", () => {
+    expect(nextCode("RG", [])).toBe("RG-01");
+    expect(nextCode("RG", ["RG-01", "D03", null, "RG-09"])).toBe("RG-10");
+  });
+});
